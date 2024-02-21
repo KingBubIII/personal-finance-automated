@@ -12,16 +12,6 @@ def get_row_indexes(path:str, columns: dict[str:int]) -> dict[str:int]:
             headers = row
             break
         
-        # build a string the user will see 
-        # user will determine if the automatically found headers are matching correctly with the passed headers
-        # example:
-        #      0          1         2
-        # Post Date, Description, Amount
-        
-        all_headers_joined = ', '.join(headers)
-        user_view = [list(' '*len(all_headers_joined)), all_headers_joined]
-        # var to track current char index
-        prev_index = 0
         # iterate through each found column name in CSV
         for header_count, header in enumerate(headers):
             # iterate through each passed column name 
@@ -33,13 +23,32 @@ def get_row_indexes(path:str, columns: dict[str:int]) -> dict[str:int]:
                     columns[column_name] = header_count
                     break
             
-            # find the middle of the CSV file header
-            middle_len = len(header)//2
-            # get index of character where CSV header count will go
-            prev_index += middle_len
-            # set character
-            user_view[0][prev_index+2] = str(header_count)
-            # add the other half of the word worth of spaces plus the ', ' delimiter
-            prev_index += middle_len + 2
-            
-    return "".join(user_view[0]) + '\n' + user_view[1], columns
+    return columns
+
+# build a string the user will see to give the columns an index value
+# example:
+#      0          1         2
+# Post Date, Description, Amount
+def show_csv_columns(path):
+    # open csv file
+    reader = csv.reader(open(path), 'excel')
+    # grabs only the first row which should be the column names
+    for row in reader:
+        headers = row
+        break
+
+    col_count_str = ''
+    col_names = ''
+
+    for count, header in enumerate(headers):
+        col_names += header
+        if not count >= len(headers)-1:
+            col_names += ', '
+        # find middle of header to place header count in center of word(s)
+        middle_len = len(header)//2
+        # add proper spacing to middle of the header
+        # then the column number centered on the header name 
+        # then add the other half of the spacing
+        col_count_str += ' '*middle_len + str(count) + ' '*(len(header)-middle_len+1)
+
+    return col_count_str + '\n' + col_names

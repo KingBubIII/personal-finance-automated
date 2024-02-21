@@ -23,21 +23,18 @@ def add_account():
         account_name = input('Account nickname: ')
         csv_path = fileopenbox()
         # automatically find columns with names similar to required names
-        view_cols, columnIndexes = csv_ops.get_row_indexes( csv_path, 
-                                                            {   
-                                                            'date': -1, 
-                                                            'amount': -1,
-                                                            'description': -1
-                                                            })
+        print(csv_ops.show_csv_columns(csv_path))
+        columnIndexes = csv_ops.get_row_indexes( csv_path, {'date': -1, 'amount': -1, 'description': -1})
         
         # iterate though all column, index pairs
-        for col_name, col_num in columnIndexes.items():
-            print(view_cols)
+        for col_name, col_index in columnIndexes.items():
             response = ''
             # ask user for input until input is valid
             while not good_input_response(response):
-                print(col_name, col_num)
-                response = input('Is {0} the correct column index for {1}?'.format(col_num, col_name))
+                if col_index == -1:
+                    response = input('Could not find a column for {0}, please select a column for it. '.format(col_name))
+                else:
+                    response = input('Is {0} the correct column index for {1}?'.format(col_index, col_name))
             
             if response == "YES" or response == "Y":
                 continue
@@ -80,3 +77,6 @@ def create_configs():
             # recursively call function to get user input agin if configs should be deleted
             print('Not a valid answer\n')
             create_configs()
+
+create_configs()
+add_account()
