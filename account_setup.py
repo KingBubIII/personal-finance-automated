@@ -33,14 +33,14 @@ def _default_configs():
 
 # decorator to easily add to configs file
 def update_configs(func):
-    def wrapper():
+    def wrapper(*args, **kwargs):
         if not _configs_exist():
             _default_configs()
 
-        configs = load(open('configs.json','x'))
+        configs = load(open('configs.json','r'))
 
         # run function with json file contents passed
-        configs = func(configs)
+        configs = func(configs, *args, **kwargs)
 
         # opens configs file in "write" mode, therefore empties configs file for overwritting later
         with open('configs.json', 'w') as configs_writer:
@@ -82,3 +82,37 @@ def add_account(configs):
 
     return configs
 
+@update_configs
+def add_budget_category(configs):
+    # get user input for the name of the category
+    category_name = input("Name your category: ")
+    # adds the category with 3 blanks in a list for the description match, lower limit, upper limit
+    configs["categories"][category_name]= []
+
+    return configs
+
+@update_configs
+def add_category_rule(configs, category_name):
+    description_match = input('Description matching string: ')
+
+    limits = [None, None]
+
+    for index in range(len(limits)):
+        try_again = True
+        # continue to prompt until a valid input; blank or a number
+        while try_again:
+            temp_limit = input('Lower limit: ')
+            # check for int value
+            try:
+                limits[index] = int(temp_limit)
+                try_again = False
+            # error check non-int values
+            except ValueError:
+                # check for blank value
+                if temp_limit == '':
+                    limits[index]= None
+                    try_again = False
+
+    configs['categories'][category_name].append([description_match, *limits])
+
+    return configs
