@@ -25,6 +25,8 @@ def _default_configs():
 
     if not _configs_exist():
         open('configs.json','x')
+    else:
+        remove('configs.json')
 
     open('configs.json','x').write(dumps(configs, sort_keys=True, indent=4))
     return True
