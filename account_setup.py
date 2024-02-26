@@ -83,7 +83,7 @@ def add_account(configs):
     return configs
 
 @update_configs
-def add_budget_category(configs):
+def add_category(configs):
     # get user input for the name of the category
     category_name = input("Name your category: ")
     # adds the category with 3 blanks in a list for the description match, lower limit, upper limit
@@ -101,7 +101,7 @@ def add_category_rule(configs, category_name):
         try_again = True
         # continue to prompt until a valid input; blank or a number
         while try_again:
-            temp_limit = input('Lower limit: ')
+            temp_limit = input('{0} limit: '.format("Lower" if index==0 else "Upper"))
             # check for int value
             try:
                 limits[index] = int(temp_limit)
