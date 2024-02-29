@@ -1,46 +1,8 @@
-from os import remove
-from json import load, dumps
 from easygui import fileopenbox
 import csv_ops
+
 from user_input_validation import valid_YN_response, user_confirmed
-
-def _configs_exist():
-    try:
-        open('configs.json','r')
-        return True
-    except FileNotFoundError:
-        return False
-
-def _default_configs():
-    configs = {"accounts": {}, "categories":{}}
-
-    if not _configs_exist():
-        open('configs.json','x')
-    else:
-        remove('configs.json')
-
-    open('configs.json','x').write(dumps(configs, sort_keys=True, indent=4))
-    return True
-
-# decorator to easily add to configs file
-def update_configs(func):
-    def wrapper(*args, **kwargs):
-        if not _configs_exist():
-            _default_configs()
-
-        configs = load(open('configs.json','r'))
-
-        # run function with json file contents passed
-        configs = func(configs, *args, **kwargs)
-
-        # opens configs file in "write" mode, therefore empties configs file for overwritting later
-        with open('configs.json', 'w') as configs_writer:
-            # rewrites configs and prettifies output
-            configs_writer.write(dumps(configs, sort_keys=True, indent=4))
-
-        return True
-
-    return wrapper
+from configs_ops import update_configs
 
 @update_configs
 def add_account(configs):
