@@ -2,16 +2,7 @@ from os import remove
 from json import load, dumps
 from easygui import fileopenbox
 import csv_ops
-
-# check for a accepted answer
-def _good_input_response(answer):
-    # make the user response case insensitive
-    answer = answer.upper()
-    # check for yes or no variations
-    if answer in ["YES", "Y", "yes", "y", "NO", "N", "no", "n"]:
-        return True
-    else:
-        return False
+from user_input_validation import valid_YN_response, user_confirmed
 
 def _configs_exist():
     try:
@@ -64,15 +55,13 @@ def add_account(configs):
     for col_name, col_index in columnIndexes.items():
         response = ''
         # ask user for input until input is valid
-        while not _good_input_response(response):
+        while not valid_YN_response(response):
             if col_index == -1:
                 response = input('Could not find a column for {0}, please select a column for it.\n'.format(col_name))
             else:
                 response = input('Is {0} the correct column index for {1}? Y/N\n'.format(col_index, col_name))
 
-        if response == "YES" or response == "Y":
-            continue
-        else:
+        if not user_confirmed(response):
             while not response.isnumeric():
                 response= input('What column should it be for {0}? Y/N\n'.format(col_name))
 
