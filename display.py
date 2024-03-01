@@ -4,7 +4,7 @@ import classes as cl
 
 def init_all_tables(accounts_class, display_window):
     for account_name, table_obj in accounts_class.tables.items():
-        display_window.layout_.addWidget(table_obj)
+        display_window.layout().addWidget(table_obj)
 
         print(type(table_obj))
         table_obj.hide()
@@ -12,19 +12,20 @@ def init_all_tables(accounts_class, display_window):
 def show_table(window_class, accounts_class, table):
     all_account_views = list(accounts_class.tables.values())
 
-    for index in range(window_class.layout_.count()):
-        obj = window_class.layout_.itemAt(index).widget()
+    for index in range(window_class.layout().count()):
+        obj = window_class.layout().itemAt(index).widget()
 
         if obj in all_account_views:
             obj.hide()
 
     table.show()
-    window_class.layout_.update()
+    window_class.layout().update()
 
 if __name__ == "__main__":
     # init all nessessary window objects that everything else will attach to
     app = QApplication()
-    main_window = cl.WindowManager(True)
+    main_window = QWidget()
+    main_layout = QVBoxLayout(main_window)
     # main_layout = QVBoxLayout(main_window)
 
     # create a object for holding and manipulating CSV data
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     next_table_btn.addItems(list(all_accounts.tables.keys()))
     next_table_btn.currentTextChanged.connect( lambda text: show_table(main_window, all_accounts, all_accounts.tables[text]) )
 
-    main_window.layout_.addWidget(next_table_btn)
+    main_window.layout().addWidget(next_table_btn)
 
     # displays entire window and all objects attached
     main_window.show()

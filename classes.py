@@ -34,8 +34,3 @@ class AllAccountData():
     def get_account_table(self, account_name):
         # print(account_name)
         return self.tables[account_name]
-
-class WindowManager(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.layout_ = QGridLayout(self)
