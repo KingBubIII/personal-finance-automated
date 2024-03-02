@@ -6,7 +6,7 @@ def init_all_tables(accounts_class, display_window):
     for account_name, table_obj in accounts_class.tables.items():
         display_window.layout().addWidget(table_obj)
 
-        print(type(table_obj))
+        # print(type(table_obj))
         table_obj.hide()
 
 def show_table(window_class, accounts_class, table):
@@ -38,6 +38,8 @@ if __name__ == "__main__":
     next_table_btn.currentTextChanged.connect( lambda text: show_table(main_window, all_accounts, all_accounts.tables[text]) )
 
     main_window.layout().addWidget(next_table_btn)
+    next_table_btn.setCurrentIndex(next_table_btn.findText("All Accounts"))
+    # show_table(main_window, all_accounts, all_accounts.tables["All Accounts"])
 
     # displays entire window and all objects attached
     main_window.show()

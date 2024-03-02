@@ -3,6 +3,7 @@ import csv_ops
 
 from user_input_validation import valid_YN_response, user_confirmed
 from configs_ops import update_configs
+from classes import AllAccountData
 
 @update_configs
 def add_account(configs):
@@ -11,7 +12,9 @@ def add_account(configs):
     csv_path = fileopenbox()
     # automatically find columns with names similar to required names
     print(csv_ops.show_csv_columns(csv_path))
-    columnIndexes = csv_ops.get_row_indexes( csv_path, {'date': -1, 'amount': -1, 'description': -1})
+    # finds all relavant headers determined by passed class definition
+    # passes csv file path and a dictionary of each header with a value of -1
+    columnIndexes = csv_ops.get_row_indexes( csv_path,  dict({header:-1} for header in AllAccountData.headers))
 
     # iterate though all column, index pairs
     for col_name, col_index in columnIndexes.items():
