@@ -1,5 +1,4 @@
-import sys
-from PySide6.QtWidgets import QComboBox, QVBoxLayout, QApplication, QWidget, QWidgetItem, QTableWidget
+from PySide6.QtWidgets import QComboBox, QVBoxLayout, QWidget
 import classes as cl
 
 def attach_all_tables(accounts_class, display_window):
@@ -19,29 +18,26 @@ def show_table(window_class, accounts_class, table):
             obj.hide()
 
     table.show()
-    # window_class.layout().update()
 
-if __name__ == "__main__":
-    # init all nessessary window objects that everything else will attach to
-    app = QApplication()
-    main_window = QWidget()
-    main_layout = QVBoxLayout(main_window)
+def start_CSV_review():
+    window = QWidget()
+    CSV_review_layout = QVBoxLayout(window)
     # main_layout = QVBoxLayout(main_window)
 
     # create a object for holding and manipulating CSV data
     all_accounts = cl.AllAccountData()
 
-    attach_all_tables(all_accounts, main_window)
+    attach_all_tables(all_accounts, window)
 
     next_table_btn = QComboBox()
     next_table_btn.addItems(list(all_accounts.tables.keys()))
-    next_table_btn.currentTextChanged.connect( lambda text: show_table(main_window, all_accounts, all_accounts.tables[text]) )
+    next_table_btn.currentTextChanged.connect( lambda text: show_table(window, all_accounts, all_accounts.tables[text]) )
 
-    main_window.layout().addWidget(next_table_btn)
+    window.layout().addWidget(next_table_btn)
     next_table_btn.setCurrentIndex(next_table_btn.findText("All Accounts"))
     # show_table(main_window, all_accounts, all_accounts.tables["All Accounts"])
 
     # displays entire window and all objects attached
-    main_window.show()
+    window.show()
 
-    sys.exit(app.exec())
+    return window

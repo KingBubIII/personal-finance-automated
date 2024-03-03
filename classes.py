@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QWidget, QGridLayout
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
 from configs_ops import read_configs
 from csv_ops import get_data_from_account
 
