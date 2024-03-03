@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import QComboBox, QVBoxLayout, QApplication, QWidget, QWidgetItem, QTableWidget
 import classes as cl
 
-def init_all_tables(accounts_class, display_window):
+def attach_all_tables(accounts_class, display_window):
     for account_name, table_obj in accounts_class.tables.items():
         display_window.layout().addWidget(table_obj)
 
@@ -19,7 +19,7 @@ def show_table(window_class, accounts_class, table):
             obj.hide()
 
     table.show()
-    window_class.layout().update()
+    # window_class.layout().update()
 
 if __name__ == "__main__":
     # init all nessessary window objects that everything else will attach to
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # create a object for holding and manipulating CSV data
     all_accounts = cl.AllAccountData()
 
-    init_all_tables(all_accounts, main_window)
+    attach_all_tables(all_accounts, main_window)
 
     next_table_btn = QComboBox()
     next_table_btn.addItems(list(all_accounts.tables.keys()))

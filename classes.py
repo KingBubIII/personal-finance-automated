@@ -22,20 +22,19 @@ class AllAccountData():
         for account_name, account_details in configs["accounts"].items():
             # creates blank Qt6 table object with enough columns for each header
             table_obj = QTableWidget(0, len(self.headers))
-
             # sets headers on table object
             table_obj.setHorizontalHeaderLabels(self.headers)
 
             # read in account CSV file data
             # pass csv file path and only relevant header indexes
-            data = get_data_from_account(account_details['csv_path'], list(account_details['columnIndexes'].values()) )
+            data = get_data_from_account(account_details['csv_path'],  [account_details['columnIndexes'][temp_header] for temp_header in self.headers] )
             # iterate through each row of CSV data
             for row_index in range(len(data)):
                 # add a row to the table object and combined table
                 table_obj.insertRow(table_obj.rowCount())
                 all_combined.insertRow(all_combined.rowCount())
                 # iterate for each column
-                for col_index in range(len(data[row_index])):
+                for col_index in range(len(self.headers)):
                     # converts CSV data into a table item object for current table and combined table
                     table_obj.setItem(row_index, col_index, QTableWidgetItem(data[row_index][col_index]))
                     all_combined.setItem(all_combined.rowCount()-1, col_index, QTableWidgetItem(data[row_index][col_index]))
