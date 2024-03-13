@@ -53,8 +53,8 @@ def show_csv_columns(path):
 
     return col_count_str + '\n' + col_names
 
-def get_data_from_account(file_path, column_indexes):
-    reader = csv.reader(open(file_path), 'excel')
+def get_data_from_account(path, column_indexes):
+    reader = csv.reader(open(path), 'excel')
 
     selected_data = []
 

@@ -1,29 +1,47 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
+from PySide6.QtCore import QObject
+from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QStyledItemDelegate, QComboBox
 from configs_ops import read_configs
 from csv_ops import get_data_from_account
+
+class ComboBoxDelegate(QStyledItemDelegate):
+    def __init__(self, dropdown_options: list[str]) -> None:
+        super().__init__()
+
+        self.dropdown_options = dropdown_options
+
+    def createEditor(self, parent, option, index):
+        comboBox = QComboBox(parent)
+        comboBox.addItems(self.dropdown_options)
+        return comboBox
 
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
 class AllAccountData():
     def __init__(self):
         self.headers = ['date', 'amount', 'description']
-        self.tables = self.read_all_CSV_files()
+        self.categories = list(read_configs()['categories'].keys())
+        self.tables = self.get_all_account_tables()
 
-    def read_all_CSV_files(self):
+    def get_all_account_tables(self):
         # read in all accounts added to configs file
         configs = read_configs()
         tables = {}
         # creates a table to hold all table data together
-        all_combined = QTableWidget(0, len(self.headers))
+        all_combined = QTableWidget(0, len(self.headers)+1)
         # sets combined table headers
-        all_combined.setHorizontalHeaderLabels(self.headers)
+        all_combined.setHorizontalHeaderLabels([*self.headers, 'Categories'])
+
+        all_combined.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
+        all_combined.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
 
         # loops through all accounts found in confgis file
         for account_name, account_details in configs["accounts"].items():
             # creates blank Qt6 table object with enough columns for each header
-            table_obj = QTableWidget(0, len(self.headers))
+            table_obj = QTableWidget(0, len(self.headers)+1)
             # sets headers on table object
-            table_obj.setHorizontalHeaderLabels(self.headers)
+            table_obj.setHorizontalHeaderLabels([*self.headers, 'Categories'])
+            table_obj.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
+            table_obj.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
 
             # read in account CSV file data
             # pass csv file path and only relevant header indexes
