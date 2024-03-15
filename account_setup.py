@@ -3,7 +3,12 @@ import csv_ops
 
 from user_input_validation import valid_YN_response, user_confirmed
 from configs_ops import update_configs
-from classes import AllAccountData
+
+def defaults(headers=False, rules=False) -> list[str]:
+    if headers:
+        return ['date', 'amount', 'description']
+    elif rules:
+        return ['Misc']
 
 @update_configs
 def add_account(configs):
@@ -14,7 +19,7 @@ def add_account(configs):
     print(csv_ops.show_csv_columns(csv_path))
     # finds all relavant headers determined by passed class definition
     # passes csv file path and a dictionary of each header with a value of -1
-    columnIndexes = csv_ops.get_row_indexes( csv_path,  dict({header:-1} for header in AllAccountData.headers))
+    columnIndexes = csv_ops.get_row_indexes( csv_path,  {header:-1 for header in defaults(headers=True)})
 
     # iterate though all column, index pairs
     for col_name, col_index in columnIndexes.items():
@@ -38,10 +43,10 @@ def add_account(configs):
 
 @update_configs
 def add_category(configs):
-    # get user input for the name of the category
-    category_name = input("Name your category: ")
-    # adds the category with 3 blanks in a list for the description match, lower limit, upper limit
-    configs["categories"][category_name]= []
+    # get user input for the name of the rule
+    category_name = input("Name your rule: ")
+    # adds the rule with 3 blanks in a list for the description match, lower limit, upper limit
+    configs["rules"][category_name]= []
 
     return configs
 
@@ -67,6 +72,6 @@ def add_category_rule(configs, category_name):
                     limits[index]= None
                     try_again = False
 
-    configs['categories'][category_name].append([description_match, *limits])
+    configs['rules'].append([description_match, *limits, category_name])
 
     return configs

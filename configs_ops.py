@@ -9,7 +9,7 @@ def _configs_exist():
         return False
 
 def _default_configs():
-    configs = {"accounts": {}, "categories":{}}
+    configs = {"accounts": {}, "rules":[['', -9999999, 0, 'Misc'], ['', 0, 9999999, 'Income']]}
 
     if not _configs_exist():
         open('configs.json','x')
