@@ -44,34 +44,38 @@ def add_account(configs):
 @update_configs
 def add_category(configs):
     # get user input for the name of the rule
-    category_name = input("Name your rule: ")
+    category_name = input("Name your category: ")
     # adds the rule with 3 blanks in a list for the description match, lower limit, upper limit
-    configs["rules"][category_name]= []
+    configs["categories"].append(category_name)
 
     return configs
 
 @update_configs
-def add_category_rule(configs, category_name):
-    description_match = input('Description matching string: ')
+def add_rule(configs, category_name):
+    if category_name in configs["categories"]:
+        description_match = input('Description matching string: ')
 
-    limits = [None, None]
+        limits = [None, None]
 
-    for index in range(len(limits)):
-        try_again = True
-        # continue to prompt until a valid input; blank or a number
-        while try_again:
-            temp_limit = input('{0} limit: '.format("Lower" if index==0 else "Upper"))
-            # check for int value
-            try:
-                limits[index] = int(temp_limit)
-                try_again = False
-            # error check non-int values
-            except ValueError:
-                # check for blank value
-                if temp_limit == '':
-                    limits[index]= None
+        for index in range(len(limits)):
+            try_again = True
+            # continue to prompt until a valid input; blank or a number
+            while try_again:
+                temp_limit = input('{0} limit: '.format("Lower" if index==0 else "Upper"))
+                # check for int value
+                try:
+                    limits[index] = int(temp_limit)
                     try_again = False
+                # error check non-int values
+                except ValueError:
+                    # check for blank value
+                    if temp_limit == '':
+                        limits[index]= None
+                        try_again = False
 
-    configs['rules'].append([description_match, *limits, category_name])
+        configs['rules'].append([description_match, *limits, category_name])
+        print('Successful')
+    else:
+        print('Category does not exist')
 
     return configs

@@ -16,10 +16,10 @@ class ComboBoxDelegate(QStyledItemDelegate):
 
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
-class AllAccountData():
+class Transactions():
     def __init__(self):
         self.headers = defaults(headers=True)
-        self.categories = list(set([rule[3] for rule in read_configs()['rules']]))
+        self.categories = read_configs()["categories"]
         self.tables = self.get_all_account_tables()
 
     def auto_category(self, data):
@@ -56,6 +56,8 @@ class AllAccountData():
         all_combined.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
         all_combined.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
 
+        prev_table_offsets = 0
+
         # loops through all accounts found in confgis file
         for account_name, account_details in configs["accounts"].items():
             # creates blank Qt6 table object with enough columns for each header
@@ -82,9 +84,10 @@ class AllAccountData():
                 # the final column of the row is auto catorgized based on previously made rules in the configs
                 # default option is "Misc"
                 table_obj.setItem(row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
-                all_combined.setItem(row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
+                all_combined.setItem(prev_table_offsets+row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
             # add the current table to the whole tables dictionary
             tables[account_name] = table_obj
+            prev_table_offsets += row_index+1
 
         tables['All Accounts'] = all_combined
 
