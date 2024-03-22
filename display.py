@@ -62,9 +62,17 @@ def configs_setup_GUI():
     scroll_obj = QScrollArea(account_selection_area)
     scroll_obj.setWidget(checkbox_area)
 
+    account_check_boxes = []
+
     for count, account in enumerate(read_configs()["accounts"]):
         test = QCheckBox(account, checkbox_area)
-        test.move(default_margin, default_margin*count)
+        test.setGeometry(default_margin, default_margin*count, 150, default_margin)
+        account_check_boxes.append(test)
+
+    # for count in range(10):
+    #     test = QCheckBox(str(count), checkbox_area)
+    #     test.setGeometry(default_margin, default_margin*count, 150, default_margin)
+    #     account_check_boxes.append(test)
 
     import_account_btn = QPushButton('Import Account CSV', account_selection_area)
 
@@ -73,7 +81,6 @@ def configs_setup_GUI():
                                             default_margin,
                                             window.geometry().width()//2,
                                             window.geometry().height()//3)
-        # account_selection_area.geometry().setLeft(default_margin)
 
         stats_area.setGeometry(QRect(
                                     QPoint(
@@ -86,6 +93,7 @@ def configs_setup_GUI():
                                             )
                                     )
                                 )
+
         budget_review_area.setGeometry(QRect(
                                     QPoint(
                                             account_selection_area.geometry().right()+default_margin,
@@ -98,9 +106,37 @@ def configs_setup_GUI():
                                     )
                                 )
 
-        import_account_btn.setGeometry(default_margin, default_margin, 150, default_margin)
-        scroll_obj.setGeometry(default_margin, import_account_btn.geometry().bottom()+default_margin, account_selection_area.geometry().width()-(default_margin*2), account_selection_area.geometry().height()-(default_margin*2))
-        checkbox_area.setGeometry(default_margin, import_account_btn.geometry().bottom()+default_margin, scroll_obj.geometry().width()-(default_margin*2), (default_margin*(count+1)) )
+        import_account_btn.setGeometry(QRect(
+                                        QPoint(
+                                            default_margin,
+                                            default_margin
+                                            ),
+                                        QPoint(
+                                                account_selection_area.geometry().width()//3 if account_selection_area.geometry().width() < 150 else 150,
+                                                default_margin+default_margin
+                                                )
+                                            )
+                                        )
+
+        scroll_obj.setGeometry(QRect(
+                                QPoint(
+                                    default_margin,
+                                    import_account_btn.geometry().bottom() + default_margin
+                                    ),
+                            QPoint(
+                                    account_selection_area.geometry().width()-default_margin,
+                                    account_selection_area.geometry().height()-default_margin
+                                    )
+                                )
+                            )
+
+        checkbox_area.setGeometry(
+                                    default_margin,
+                                    default_margin,
+                                    scroll_obj.geometry().width()-default_margin,
+                                    default_margin*len(account_check_boxes)
+                                )
+
 
     window.resizeEvent = _resize
     # window.showMaximized()
