@@ -75,6 +75,7 @@ def configs_setup_GUI():
     #     account_check_boxes.append(test)
 
     import_account_btn = QPushButton('Import Account CSV', account_selection_area)
+    edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
 
     def _resize(event):
         account_selection_area.setGeometry( default_margin,
@@ -111,9 +112,21 @@ def configs_setup_GUI():
                                             default_margin,
                                             default_margin
                                             ),
+                                        QSize(
+                                                150,
+                                                default_margin
+                                                )
+                                            )
+                                        )
+
+        edit_transactions_btn.setGeometry(QRect(
                                         QPoint(
-                                                account_selection_area.geometry().width()//3 if account_selection_area.geometry().width() < 150 else 150,
-                                                default_margin+default_margin
+                                            import_account_btn.geometry().right()+default_margin,
+                                            default_margin
+                                            ),
+                                        QSize(
+                                                150,
+                                                default_margin
                                                 )
                                             )
                                         )
