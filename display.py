@@ -21,7 +21,7 @@ def show_table(window_class, accounts_class, table):
 
     table.show()
 
-def start_CSV_review():
+def start_CSV_review(selected_tables):
     window = QWidget()
     CSV_review_layout = QGridLayout(window)
     # main_layout = QVBoxLayout(main_window)
@@ -32,12 +32,11 @@ def start_CSV_review():
     attach_all_tables(all_accounts, window)
 
     account_selector = QComboBox()
-    account_selector.addItems(list(all_accounts.tables.keys()))
+    account_selector.addItems(selected_tables)
     account_selector.currentTextChanged.connect( lambda text: show_table(window, all_accounts, all_accounts.tables[text]) )
+    show_table(window, all_accounts, all_accounts.tables[account_selector.itemText(0)])
 
     window.layout().addWidget(account_selector, 1, 0)
-    account_selector.setCurrentIndex(account_selector.findText("All Accounts"))
-    # show_table(main_window, all_accounts, all_accounts.tables["All Accounts"])
 
     # displays entire window and all objects attached
     window.show()
@@ -69,13 +68,15 @@ def configs_setup_GUI():
         test.setGeometry(default_margin, default_margin*count, 150, default_margin)
         account_check_boxes.append(test)
 
-    # for count in range(10):
-    #     test = QCheckBox(str(count), checkbox_area)
-    #     test.setGeometry(default_margin, default_margin*count, 150, default_margin)
-    #     account_check_boxes.append(test)
-
     import_account_btn = QPushButton('Import Account CSV', account_selection_area)
+
     edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
+
+    def get_selected_accounts():
+        selected_account_objs = list(filter(lambda account: account.isChecked(), account_check_boxes))
+        return [obj.text() for obj in selected_account_objs]
+
+    edit_transactions_btn.clicked.connect(lambda ctx: start_CSV_review(get_selected_accounts()) )
 
     def _resize(event):
         account_selection_area.setGeometry( default_margin,

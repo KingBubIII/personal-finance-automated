@@ -48,13 +48,6 @@ class Transactions():
         # read in all accounts added to configs file
         configs = read_configs()
         tables = {}
-        # creates a table to hold all table data together
-        all_combined = QTableWidget(0, len(self.headers)+1)
-        # sets combined table headers
-        all_combined.setHorizontalHeaderLabels([*self.headers, 'Categories'])
-
-        all_combined.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
-        all_combined.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
 
         prev_table_offsets = 0
 
@@ -74,22 +67,17 @@ class Transactions():
             for row_index in range(len(data)):
                 # add a row to the table object and combined table
                 table_obj.insertRow(table_obj.rowCount())
-                all_combined.insertRow(all_combined.rowCount())
                 # iterate for each column
                 for col_index in range(len(self.headers)):
                     # converts CSV data into a table item object for current table and combined table
                     table_obj.setItem(row_index, col_index, QTableWidgetItem(data[row_index][col_index]))
-                    all_combined.setItem(all_combined.rowCount()-1, col_index, QTableWidgetItem(data[row_index][col_index]))
 
                 # the final column of the row is auto catorgized based on previously made rules in the configs
                 # default option is "Misc"
                 table_obj.setItem(row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
-                all_combined.setItem(prev_table_offsets+row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
             # add the current table to the whole tables dictionary
             tables[account_name] = table_obj
             prev_table_offsets += row_index+1
-
-        tables['All Accounts'] = all_combined
 
         return tables
 
