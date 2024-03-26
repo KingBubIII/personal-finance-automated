@@ -7,19 +7,8 @@ def attach_all_tables(accounts_class, display_window):
     for account_name, table_obj in accounts_class.tables.items():
         display_window.layout().addWidget(table_obj, 0, 0)
 
-        # print(type(table_obj))
-        table_obj.hide()
-
-def show_table(window_class, accounts_class, table):
-    all_account_views = list(accounts_class.tables.values())
-
-    for index in range(window_class.layout().count()):
-        obj = window_class.layout().itemAt(index).widget()
-
-        if obj in all_account_views:
-            obj.hide()
-
-    table.show()
+def show_table(window_class, table):
+    table.raise_()
 
 def start_CSV_review(selected_tables):
     window = QWidget()
@@ -33,8 +22,8 @@ def start_CSV_review(selected_tables):
 
     account_selector = QComboBox()
     account_selector.addItems(selected_tables)
-    account_selector.currentTextChanged.connect( lambda text: show_table(window, all_accounts, all_accounts.tables[text]) )
-    show_table(window, all_accounts, all_accounts.tables[account_selector.itemText(0)])
+    account_selector.currentTextChanged.connect( lambda text: show_table(window, all_accounts.tables[text]) )
+    show_table(window, all_accounts.tables[account_selector.itemText(0)])
 
     window.layout().addWidget(account_selector, 1, 0)
 
