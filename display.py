@@ -5,7 +5,7 @@ from configs_ops import read_configs
 
 def attach_all_tables(accounts_class, display_window):
     for account_name, table_obj in accounts_class.tables.items():
-        display_window.layout().addWidget(table_obj, 0, 0)
+        display_window.layout().addWidget(table_obj, 1, 0)
 
 def show_table(window_class, table):
     table.raise_()
@@ -25,7 +25,11 @@ def start_CSV_review(selected_tables):
     account_selector.currentTextChanged.connect( lambda text: show_table(window, all_accounts.tables[text]) )
     show_table(window, all_accounts.tables[account_selector.itemText(0)])
 
-    window.layout().addWidget(account_selector, 1, 0)
+    window.layout().addWidget(account_selector, 2, 0)
+
+    return_btn = QPushButton("Save and Exit")
+    window.layout().addWidget(return_btn, 0, 0)
+
 
     # displays entire window and all objects attached
     window.show()
