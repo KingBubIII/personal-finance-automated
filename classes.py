@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QStyledItemDelegate, QComboBox, QWidget
 from configs_ops import read_configs
 from csv_ops import get_data_from_account
-from account_setup import defaults
+from account_setup import defaults, add_override
 
 class ComboBoxDelegate(QStyledItemDelegate):
     def __init__(self, dropdown_options: list[str]) -> None:
@@ -13,6 +13,28 @@ class ComboBoxDelegate(QStyledItemDelegate):
         comboBox = QComboBox(parent)
         comboBox.addItems(self.dropdown_options)
         return comboBox
+
+class ExtendedTableWidget(QTableWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # overrides not allowed by default to not create errors when loading in the CSV files
+        self.allow_overrides = False
+        self.uncommited_overrides = {}
+        self.cellChanged.connect(self.stage_override)
+
+    def stage_override(self):
+        # checks to see if overrides are allowed
+        if self.allow_overrides:
+            self.uncommited_overrides.update({self.currentRow(): self.currentItem().text()})
+
+    # one by one adds the manual override to the proper account in the configs file
+    def commit_overrides(self):
+        # saves overrides to configs file
+        for row, category in self.uncommited_overrides.items():
+            add_override(self.objectName(), row, category)
+
+        # empties out all overrides
+        self.uncommited_overrides = {}
 
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
@@ -49,16 +71,16 @@ class Transactions():
         configs = read_configs()
         tables = {}
 
-        prev_table_offsets = 0
-
         # loops through all accounts found in confgis file
         for account_name, account_details in configs["accounts"].items():
             # creates blank Qt6 table object with enough columns for each header
-            table_obj = QTableWidget(0, len(self.headers)+1)
+            table_obj = ExtendedTableWidget(0, len(self.headers)+1)
+            table_obj.setObjectName(account_name)
+
             # sets headers on table object
             table_obj.setHorizontalHeaderLabels([*self.headers, 'Categories'])
             table_obj.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
-            table_obj.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
+            table_obj.setEditTriggers(ExtendedTableWidget.EditTrigger.AllEditTriggers)
 
             # read in account CSV file data
             # pass csv file path and only relevant header indexes
@@ -75,12 +97,24 @@ class Transactions():
                 # the final column of the row is auto catorgized based on previously made rules in the configs
                 # default option is "Misc"
                 table_obj.setItem(row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
+
+            # loads all overrides user previously made
+            for row, category in configs["accounts"][account_name]["overrides"].items():
+                table_obj.setItem(int(row), len(self.headers), QTableWidgetItem(category))
+
             # add the current table to the whole tables dictionary
             tables[account_name] = table_obj
-            prev_table_offsets += row_index+1
+
+        # enable manual overrides for each table
+        for account_name, table_obj in tables.items():
+            table_obj.allow_overrides = True
 
         return tables
 
     def get_account_table(self, account_name):
         # print(account_name)
         return self.tables[account_name]
+
+    def commit_all_overrides(self):
+        for table_name, table_obj in self.tables.items():
+            table_obj.commit_overrides()

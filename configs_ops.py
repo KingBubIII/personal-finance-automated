@@ -36,7 +36,7 @@ def update_configs(func):
         # opens configs file in "write" mode, therefore empties configs file for overwritting later
         with open('configs.json', 'w') as configs_writer:
             # rewrites configs and prettifies output
-            configs_writer.write(dumps(configs, sort_keys=True, indent=4))
+            configs_writer.write(dumps(configs, indent=4))
 
         return True
 

@@ -20,16 +20,24 @@ def start_CSV_review(selected_tables):
 
     attach_all_tables(all_accounts, window)
 
+    # drop down menu to allow users to switch between account tables
     account_selector = QComboBox()
     account_selector.addItems(selected_tables)
+    # show account table when the drop down menu choice is changed
     account_selector.currentTextChanged.connect( lambda text: show_table(window, all_accounts.tables[text]) )
+    # on init show the first table in the list
     show_table(window, all_accounts.tables[account_selector.itemText(0)])
 
     window.layout().addWidget(account_selector, 2, 0)
 
+    # a button to save all manual overrides and close the window
     return_btn = QPushButton("Save and Exit")
-    window.layout().addWidget(return_btn, 0, 0)
+    def _save_and_exit():
+        all_accounts.commit_all_overrides()
+        window.close()
+    return_btn.clicked.connect(_save_and_exit)
 
+    window.layout().addWidget(return_btn, 0, 0)
 
     # displays entire window and all objects attached
     window.show()

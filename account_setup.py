@@ -1,5 +1,6 @@
 from easygui import fileopenbox
 import csv_ops
+from os import remove
 
 from user_input_validation import valid_YN_response, user_confirmed
 from configs_ops import update_configs
@@ -37,7 +38,7 @@ def add_account(configs):
 
             columnIndexes[col_name] = int(response)
 
-    configs['accounts'][account_name] = {"csv_path": csv_path, "columnIndexes": columnIndexes}
+    configs['accounts'][account_name] = {"csv_path": csv_path, "columnIndexes": columnIndexes, "overrides":{}}
 
     return configs
 
@@ -77,5 +78,19 @@ def add_rule(configs, category_name):
         print('Successful')
     else:
         print('Category does not exist')
+
+    return configs
+
+@update_configs
+def add_override(configs, account_name, row, category):
+    # converting row to a string type because json does not handle integers as keys
+
+    # checks that override in that table and row don't exsist
+    try:
+        configs['accounts'][account_name]['overrides'][str(row)]
+        configs['accounts'][account_name]['overrides'][str(row)] = category
+    # if it does exsist then overwrite it
+    except KeyError as e:
+        configs['accounts'][account_name]['overrides'].update({str(row):category})
 
     return configs
