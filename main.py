@@ -1,11 +1,11 @@
 import sys
 from PySide6.QtWidgets import QApplication
-import display
+import classes
 
 # init all nessessary window objects that everything else will attach to
 app = QApplication()
 
-# main_window = display.start_CSV_review()
-main_window = display.configs_setup_GUI()
+window_obj = classes.MainWindow_()
+window_obj._show_current_screen()
 
 sys.exit(app.exec())

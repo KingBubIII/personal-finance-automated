@@ -1,7 +1,187 @@
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QStyledItemDelegate, QComboBox, QWidget
+from PySide6.QtCore import *
+from PySide6.QtWidgets import *
 from configs_ops import read_configs
 from csv_ops import get_data_from_account
 from account_setup import defaults, add_override
+
+class MainWindow_():
+    def __init__(self):
+        self.current_screen = None
+        self.screen_stack = []
+
+        self.init_home_screen()
+
+    def _show_current_screen(self):
+        for window in self.screen_stack:
+            window.hide()
+        self.current_screen = self.screen_stack[-1]
+        self.current_screen.show()
+
+    # new decorator for creating a new screen
+    def add_screen(self, new_screen):
+
+        self.screen_stack.append(new_screen)
+        self.current_screen = new_screen
+
+        self._show_current_screen()
+
+    def go_back(self):
+        if len(self.screen_stack) > 1:
+            self.current_screen.close()
+            self.screen_stack.pop()
+
+        self._show_current_screen()
+
+    def _attach_all_tables(self, accounts_class, display_window):
+        for account_name, table_obj in accounts_class.tables.items():
+            display_window.layout().addWidget(table_obj, 1, 0)
+
+    def _show_table(self, window_class, table):
+        table.raise_()
+
+    def start_CSV_review(self, selected_tables):
+        window = QWidget()
+        CSV_review_layout = QGridLayout(window)
+
+        # create a object for holding and manipulating CSV data
+        all_accounts = Transactions()
+
+        self._attach_all_tables(all_accounts, window)
+
+        # drop down menu to allow users to switch between account tables
+        account_selector = QComboBox()
+        account_selector.addItems(selected_tables)
+        # show account table when the drop down menu choice is changed
+        account_selector.currentTextChanged.connect( lambda text: self._show_table(window, all_accounts.tables[text]) )
+        # on init show the first table in the list
+        self._show_table(window, all_accounts.tables[account_selector.itemText(0)])
+
+        window.layout().addWidget(account_selector, 2, 0)
+
+        # a button to save all manual overrides and close the window
+        return_btn = QPushButton("Save and Exit")
+        def _save_and_exit():
+            all_accounts.commit_all_overrides()
+            self.go_back()
+
+        return_btn.clicked.connect(_save_and_exit)
+
+        window.layout().addWidget(return_btn, 0, 0)
+
+        self.add_screen(window)
+
+    def init_home_screen(self):
+        default_margin = 25
+
+        # whole window and layout
+        window = QWidget()
+        layout = QGridLayout(window)
+
+        # area to select which accounts to view
+        account_selection_area = QGroupBox("Account Selection", window)
+        stats_area = QGroupBox("Stats", window)
+        budget_review_area = QGroupBox("Budget Review", window)
+        checkbox_area = QWidget(account_selection_area)
+        checkbox_area_layout = QGridLayout(checkbox_area)
+
+        # making it scrollable for when there is many accounts
+        scroll_obj = QScrollArea(account_selection_area)
+        scroll_obj.setWidget(checkbox_area)
+
+        account_check_boxes = []
+
+        for count, account in enumerate(read_configs()["accounts"]):
+            test = QCheckBox(account, checkbox_area)
+            test.setGeometry(default_margin, default_margin*count, 150, default_margin)
+            account_check_boxes.append(test)
+
+        import_account_btn = QPushButton('Import Account CSV', account_selection_area)
+
+        edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
+
+        def get_selected_accounts():
+            selected_account_objs = list(filter(lambda account: account.isChecked(), account_check_boxes))
+            return [obj.text() for obj in selected_account_objs]
+
+        edit_transactions_btn.clicked.connect(lambda ctx: self.start_CSV_review(get_selected_accounts()) )
+        # import_account_btn.clicked.connect(lambda ctx: self.add_account_GUI())
+
+        def _resize(event):
+            account_selection_area.setGeometry( default_margin,
+                                                default_margin,
+                                                window.geometry().width()//2,
+                                                window.geometry().height()//3)
+
+            stats_area.setGeometry(QRect(
+                                        QPoint(
+                                                default_margin,
+                                                account_selection_area.geometry().bottom()+default_margin
+                                                ),
+                                        QPoint(
+                                                account_selection_area.geometry().right(),
+                                                window.geometry().bottom()-default_margin
+                                                )
+                                        )
+                                    )
+
+            budget_review_area.setGeometry(QRect(
+                                        QPoint(
+                                                account_selection_area.geometry().right()+default_margin,
+                                                default_margin
+                                                ),
+                                        QPoint(
+                                                window.geometry().right()-default_margin,
+                                                window.geometry().bottom()-default_margin
+                                                )
+                                        )
+                                    )
+
+            import_account_btn.setGeometry(QRect(
+                                            QPoint(
+                                                default_margin,
+                                                default_margin
+                                                ),
+                                            QSize(
+                                                    150,
+                                                    default_margin
+                                                    )
+                                                )
+                                            )
+
+            edit_transactions_btn.setGeometry(QRect(
+                                            QPoint(
+                                                import_account_btn.geometry().right()+default_margin,
+                                                default_margin
+                                                ),
+                                            QSize(
+                                                    150,
+                                                    default_margin
+                                                    )
+                                                )
+                                            )
+
+            scroll_obj.setGeometry(QRect(
+                                    QPoint(
+                                        default_margin,
+                                        import_account_btn.geometry().bottom() + default_margin
+                                        ),
+                                QPoint(
+                                        account_selection_area.geometry().width()-default_margin,
+                                        account_selection_area.geometry().height()-default_margin
+                                        )
+                                    )
+                                )
+
+            checkbox_area.setGeometry(
+                                        default_margin,
+                                        default_margin,
+                                        scroll_obj.geometry().width()-default_margin,
+                                        default_margin*len(account_check_boxes)
+                                    )
+
+        window.resizeEvent = _resize
+
+        self.add_screen(window)
 
 class ComboBoxDelegate(QStyledItemDelegate):
     def __init__(self, dropdown_options: list[str]) -> None:
