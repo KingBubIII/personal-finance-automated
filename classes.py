@@ -4,33 +4,14 @@ from configs_ops import read_configs
 from csv_ops import get_data_from_account
 from account_setup import defaults, add_override
 
-class MainWindow_():
+class MainWindow_(QWidget):
     def __init__(self):
-        self.current_screen = None
-        self.screen_stack = []
+        super().__init__()
+        self.show()
+
+        self.setLayout(QStackedLayout())
 
         self.init_home_screen()
-
-    def _show_current_screen(self):
-        for window in self.screen_stack:
-            window.hide()
-        self.current_screen = self.screen_stack[-1]
-        self.current_screen.show()
-
-    # new decorator for creating a new screen
-    def add_screen(self, new_screen):
-
-        self.screen_stack.append(new_screen)
-        self.current_screen = new_screen
-
-        self._show_current_screen()
-
-    def go_back(self):
-        if len(self.screen_stack) > 1:
-            self.current_screen.close()
-            self.screen_stack.pop()
-
-        self._show_current_screen()
 
     def _attach_all_tables(self, accounts_class, display_window):
         for account_name, table_obj in accounts_class.tables.items():
@@ -40,7 +21,7 @@ class MainWindow_():
         table.raise_()
 
     def start_CSV_review(self, selected_tables):
-        window = QWidget()
+        window = QWidget(self)
         CSV_review_layout = QGridLayout(window)
 
         # create a object for holding and manipulating CSV data
@@ -62,19 +43,20 @@ class MainWindow_():
         return_btn = QPushButton("Save and Exit")
         def _save_and_exit():
             all_accounts.commit_all_overrides()
-            self.go_back()
+            self.layout().removeWidget(window)
 
         return_btn.clicked.connect(_save_and_exit)
 
         window.layout().addWidget(return_btn, 0, 0)
 
-        self.add_screen(window)
+        self.layout().addWidget(window)
+        self.layout().setCurrentWidget(window)
 
     def init_home_screen(self):
         default_margin = 25
 
         # whole window and layout
-        window = QWidget()
+        window = QWidget(self)
         layout = QGridLayout(window)
 
         # area to select which accounts to view
@@ -181,7 +163,8 @@ class MainWindow_():
 
         window.resizeEvent = _resize
 
-        self.add_screen(window)
+        self.layout().addWidget(window)
+        self.layout().setCurrentWidget(window)
 
 class ComboBoxDelegate(QStyledItemDelegate):
     def __init__(self, dropdown_options: list[str]) -> None:

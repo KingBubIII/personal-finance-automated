@@ -6,6 +6,5 @@ import classes
 app = QApplication()
 
 window_obj = classes.MainWindow_()
-window_obj._show_current_screen()
 
 sys.exit(app.exec())
