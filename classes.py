@@ -11,6 +11,9 @@ class MainWindow_(QWidget):
 
         self.setLayout(QStackedLayout())
 
+        self.setMinimumSize(960,540)
+        self.default_widget_margin = 25
+
         self.init_home_screen()
 
     def _attach_all_tables(self, accounts_class, display_window):
@@ -89,7 +92,7 @@ class MainWindow_(QWidget):
             return [obj.text() for obj in selected_account_objs]
 
         edit_transactions_btn.clicked.connect(lambda ctx: self.start_CSV_review(get_selected_accounts()) )
-        # import_account_btn.clicked.connect(lambda ctx: self.add_account_GUI())
+        import_account_btn.clicked.connect(lambda ctx: self.add_account_wizard())
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -134,15 +137,15 @@ class MainWindow_(QWidget):
                                             )
 
             edit_transactions_btn.setGeometry(QRect(
-                                            QPoint(
-                                                import_account_btn.geometry().right()+default_margin,
-                                                default_margin
-                                                ),
-                                            QSize(
-                                                    150,
+                                                QPoint(
+                                                    import_account_btn.geometry().right()+default_margin,
                                                     default_margin
+                                                    ),
+                                                QSize(
+                                                        150,
+                                                        default_margin
+                                                        )
                                                     )
-                                                )
                                             )
 
             scroll_obj.setGeometry(QRect(
@@ -167,6 +170,94 @@ class MainWindow_(QWidget):
         home.resizeEvent = _resize
 
         self._add_view(home)
+
+    def add_account_wizard(self):
+        account_importing = QWidget(self)
+        add_account_layout = QGridLayout(account_importing)
+
+        close_btn = QPushButton("close", account_importing)
+        import_CSV_btn = QPushButton("Import CSV", account_importing)
+        headers_selection = QTableWidget(1, 3, account_importing)
+        next_header_btn = QPushButton("Next", account_importing)
+        prev_header_btn = QPushButton("Previous", account_importing)
+        directions_box = QTextEdit(import_CSV_btn)
+
+        def _resize(ctx=None):
+            close_btn.setGeometry(
+                                    QRect(
+                                            QPoint( self.default_widget_margin,
+                                                    self.default_widget_margin
+                                                    ),
+                                            QSize(  100,
+                                                    self.default_widget_margin
+                                                )
+                                        )
+                                )
+            import_CSV_btn.setGeometry(
+                                        QRect(
+                                                QPoint(
+                                                        self.default_widget_margin,
+                                                        close_btn.geometry().bottom()+100
+
+                                                ),
+                                                QSize(
+                                                    100,
+                                                    self.default_widget_margin
+                                                )
+
+                                            ),
+                                    )
+            headers_selection.setGeometry(
+                                            QRect(
+                                                QPoint(
+                                                        self.default_widget_margin,
+                                                        import_CSV_btn.geometry().bottom()+self.default_widget_margin
+                                                    ),
+                                                QSize(
+                                                    self.geometry().width()//2,
+                                                    self.default_widget_margin*2
+                                                )
+                                            )
+                                        )
+            prev_header_btn.setGeometry(
+                                            QRect(
+                                                QPoint( self.default_widget_margin,
+                                                        headers_selection.geometry().bottom()+self.default_widget_margin
+                                                        ),
+                                                QSize(
+                                                    headers_selection.geometry().width()//3,
+                                                    self.default_widget_margin
+                                                )
+                                            )
+                                        )
+            directions_box.setGeometry(
+                                        QRect(
+                                            QPoint( prev_header_btn.geometry().right()+self.default_widget_margin,
+                                                    headers_selection.geometry().bottom()+self.default_widget_margin
+                                                    ),
+                                            QSize(
+                                                headers_selection.geometry().width()//3,
+                                                self.default_widget_margin
+                                            )
+                                        )
+                                    )
+            next_header_btn.setGeometry(
+                                        QRect(
+                                            QPoint( directions_box.geometry().right()+self.default_widget_margin,
+                                                    headers_selection.geometry().bottom()+self.default_widget_margin
+                                                    ),
+                                            QSize(
+                                                headers_selection.geometry().width()//3,
+                                                self.default_widget_margin
+                                            )
+                                        )
+                                    )
+
+
+        _resize()
+        account_importing.resizeEvent = _resize
+
+        self._add_view(account_importing)
 
 class ComboBoxDelegate(QStyledItemDelegate):
     def __init__(self, dropdown_options: list[str]) -> None:
