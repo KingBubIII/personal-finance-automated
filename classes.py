@@ -1,7 +1,7 @@
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from configs_ops import read_configs
-from csv_ops import get_data_from_account
+from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, add_override
 
 class MainWindow_(QWidget):
@@ -177,10 +177,25 @@ class MainWindow_(QWidget):
 
         close_btn = QPushButton("close", account_importing)
         import_CSV_btn = QPushButton("Import CSV", account_importing)
-        headers_selection = QTableWidget(1, 3, account_importing)
+        file_dialog = QFileDialog(account_importing)
+        headers_selection = QTableWidget(1, 0, account_importing)
         next_header_btn = QPushButton("Next", account_importing)
         prev_header_btn = QPushButton("Previous", account_importing)
-        directions_box = QTextEdit(import_CSV_btn)
+        directions_box = QLabel("Select the date column",account_importing)
+        
+        directions_box.setAlignment(Qt.AlignCenter)
+
+        def _show_headers():
+            file_dialog.exec()
+
+            headers = file_dialog.selectedFiles()
+
+            for index in range(len(headers)):
+                headers_selection.insertColumn(headers_selection.colorCount()-1)
+                headers_selection.setItem(1, index, QTableWidgetItem(headers[index]))
+        
+        import_CSV_btn.clicked.connect(_show_headers)
+
 
         def _resize(ctx=None):
             close_btn.setGeometry(
@@ -232,7 +247,7 @@ class MainWindow_(QWidget):
                                         )
             directions_box.setGeometry(
                                         QRect(
-                                            QPoint( prev_header_btn.geometry().right()+self.default_widget_margin,
+                                            QPoint( prev_header_btn.geometry().right(),
                                                     headers_selection.geometry().bottom()+self.default_widget_margin
                                                     ),
                                             QSize(
@@ -243,7 +258,7 @@ class MainWindow_(QWidget):
                                     )
             next_header_btn.setGeometry(
                                         QRect(
-                                            QPoint( directions_box.geometry().right()+self.default_widget_margin,
+                                            QPoint( directions_box.geometry().right(),
                                                     headers_selection.geometry().bottom()+self.default_widget_margin
                                                     ),
                                             QSize(

@@ -1,5 +1,13 @@
 import csv
 
+def get_headers(path):
+    # open csv file
+    reader = csv.reader(open(path), 'excel')
+    # grabs only the first row which should be the column names
+    for row in reader:
+        headers = row
+        break
+
 # this function automattically tries to find the relavant columns needed for organizing and totalling
 # takes in path to the CSV file and what columns need to be found
 def get_row_indexes(path:str, columns: dict[str:int]) -> dict[str:int]:
@@ -30,12 +38,7 @@ def get_row_indexes(path:str, columns: dict[str:int]) -> dict[str:int]:
 #      0          1         2
 # Post Date, Description, Amount
 def show_csv_columns(path):
-    # open csv file
-    reader = csv.reader(open(path), 'excel')
-    # grabs only the first row which should be the column names
-    for row in reader:
-        headers = row
-        break
+    headers = get_headers(path)
 
     col_count_str = ''
     col_names = ''
