@@ -6,7 +6,7 @@ def get_headers(path):
     # grabs only the first row which should be the column names
     for row in reader:
         headers = row
-        break
+        return row
 
 # this function automattically tries to find the relavant columns needed for organizing and totalling
 # takes in path to the CSV file and what columns need to be found

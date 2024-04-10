@@ -182,18 +182,19 @@ class MainWindow_(QWidget):
         next_header_btn = QPushButton("Next", account_importing)
         prev_header_btn = QPushButton("Previous", account_importing)
         directions_box = QLabel("Select the date column",account_importing)
-        
+
         directions_box.setAlignment(Qt.AlignCenter)
 
         def _show_headers():
             file_dialog.exec()
 
-            headers = file_dialog.selectedFiles()
+            headers = get_headers(file_dialog.selectedFiles()[0])
+
+            headers_selection.setColumnCount(len(headers))
 
             for index in range(len(headers)):
-                headers_selection.insertColumn(headers_selection.colorCount()-1)
-                headers_selection.setItem(1, index, QTableWidgetItem(headers[index]))
-        
+                headers_selection.setItem(0, index, QTableWidgetItem(headers[index]))
+
         import_CSV_btn.clicked.connect(_show_headers)
 
 
@@ -230,7 +231,7 @@ class MainWindow_(QWidget):
                                                     ),
                                                 QSize(
                                                     self.geometry().width()//2,
-                                                    self.default_widget_margin*2
+                                                    self.default_widget_margin*3
                                                 )
                                             )
                                         )
