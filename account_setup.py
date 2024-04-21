@@ -1,4 +1,3 @@
-from easygui import fileopenbox
 import csv_ops
 from os import remove
 
@@ -12,33 +11,8 @@ def defaults(headers=False, rules=False) -> list[str]:
         return ['Misc']
 
 @update_configs
-def add_account(configs):
-    # asks user input for account identifier and the path the CSV file
-    account_name = input('Account nickname: ')
-    csv_path = fileopenbox()
-    # automatically find columns with names similar to required names
-    print(csv_ops.show_csv_columns(csv_path))
-    # finds all relavant headers determined by passed class definition
-    # passes csv file path and a dictionary of each header with a value of -1
-    columnIndexes = csv_ops.get_row_indexes( csv_path,  {header:-1 for header in defaults(headers=True)})
-
-    # iterate though all column, index pairs
-    for col_name, col_index in columnIndexes.items():
-        response = ''
-        # ask user for input until input is valid
-        while not valid_YN_response(response):
-            if col_index == -1:
-                response = input('Could not find a column for {0}, please select a column for it.\n'.format(col_name))
-            else:
-                response = input('Is {0} the correct column index for {1}? Y/N\n'.format(col_index, col_name))
-
-        if not user_confirmed(response):
-            while not response.isnumeric():
-                response= input('What column should it be for {0}? Y/N\n'.format(col_name))
-
-            columnIndexes[col_name] = int(response)
-
-    configs['accounts'][account_name] = {"csv_path": csv_path, "columnIndexes": columnIndexes, "overrides":{}}
+def add_account(configs, account_name, file_path, user_defined_indexes):
+    configs['accounts'][account_name] = {"csv_path": file_path, "columnIndexes": user_defined_indexes, "overrides":{}}
 
     return configs
 

@@ -41,3 +41,11 @@ def update_configs(func):
         return True
 
     return wrapper
+
+def get_account_details(account_name):
+    configs = read_configs()
+
+    try:
+        return configs["accounts"][account_name]
+    except KeyError as e:
+        return None
