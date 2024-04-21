@@ -21,7 +21,7 @@ def add_category(configs):
     # get user input for the name of the rule
     category_name = input("Name your category: ")
     # adds the rule with 3 blanks in a list for the description match, lower limit, upper limit
-    configs["categories"].append(category_name)
+    configs["categories"].update({category_name:0})
 
     return configs
 
@@ -68,3 +68,5 @@ def add_override(configs, account_name, row, category):
         configs['accounts'][account_name]['overrides'].update({str(row):category})
 
     return configs
+
+add_category()

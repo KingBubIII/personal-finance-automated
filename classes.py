@@ -470,7 +470,7 @@ class Transactions():
         self.categories = read_configs()["categories"]
         self.tables = self.get_all_account_tables()
 
-    def auto_category(self, data):
+    def auto_category(self, transaction):
         # reads in user defined rules from configs file
         all_rules = read_configs()['rules']
         # gets all the string matching rules except for the default 'Misc' category's string match ''
@@ -483,9 +483,9 @@ class Transactions():
         while not rule_match and curr_string_index<=len(all_rules)-1:
             # curr_string = all_string_matches[curr_string_index]
 
-            if all_rules[curr_string_index][0] in data[2]:
-                data[1] = float(data[1])
-                if data[1] > all_rules[curr_string_index][1] and data[1] <= all_rules[curr_string_index][2]:
+            if all_rules[curr_string_index][0] in transaction[2]:
+                transaction[1] = float(transaction[1])
+                if transaction[1] > all_rules[curr_string_index][1] and transaction[1] <= all_rules[curr_string_index][2]:
                     return all_rules[curr_string_index][3]
 
             curr_string_index+=1
