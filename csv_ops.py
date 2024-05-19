@@ -33,29 +33,6 @@ def get_row_indexes(path:str, columns: dict[str:int]) -> dict[str:int]:
 
     return columns
 
-# build a string the user will see to give the columns an index value
-# example:
-#      0          1         2
-# Post Date, Description, Amount
-def show_csv_columns(path):
-    headers = get_headers(path)
-
-    col_count_str = ''
-    col_names = ''
-
-    for count, header in enumerate(headers):
-        col_names += header
-        if not count >= len(headers)-1:
-            col_names += ', '
-        # find middle of header to place header count in center of word(s)
-        middle_len = len(header)//2
-        # add proper spacing to middle of the header
-        # then the column number centered on the header name
-        # then add the other half of the spacing
-        col_count_str += ' '*middle_len + str(count) + ' '*(len(header)-middle_len+1)
-
-    return col_count_str + '\n' + col_names
-
 def get_data_from_account(path, column_indexes):
     reader = csv.reader(open(path), 'excel')
 

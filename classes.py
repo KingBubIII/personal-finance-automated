@@ -79,13 +79,15 @@ class MainWindow_(QWidget):
         checkbox_area = QWidget(account_selection_area)
         checkbox_area_layout = QGridLayout(checkbox_area)
 
+        configs = read_configs()
+
         # making it scrollable for when there is many accounts
         scroll_obj = QScrollArea(account_selection_area)
         scroll_obj.setWidget(checkbox_area)
 
         account_check_boxes = []
 
-        for count, account in enumerate(read_configs()["accounts"]):
+        for count, account in enumerate(configs["accounts"]):
             test = QCheckBox(account, checkbox_area)
             test.setGeometry(default_margin, default_margin*count, 150, default_margin)
             account_check_boxes.append(test)
@@ -100,6 +102,19 @@ class MainWindow_(QWidget):
 
         edit_transactions_btn.clicked.connect(lambda ctx: self.start_CSV_review(get_selected_accounts()) )
         import_account_btn.clicked.connect(lambda ctx: self.add_account_wizard())
+
+        progress_bar_widgets = []
+
+        for category_name, budget in configs["categories"].items():
+            if not category_name == 'Income':
+                curr_bar = QProgressBar(home)
+                curr_bar.setMinimum(0)
+                curr_bar.setMaximum(budget)
+                curr_bar.setValue(Transactions().get_category_total(category_name))
+
+                bar_title = QLabel(category_name,home)
+
+                progress_bar_widgets.append([bar_title, curr_bar])
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -173,6 +188,37 @@ class MainWindow_(QWidget):
                                         scroll_obj.geometry().width()-default_margin,
                                         default_margin*len(account_check_boxes)
                                     )
+
+            prev_selector_geometries =  QRect(
+                                            QPoint(
+                                                budget_review_area.geometry().left()+self.default_widget_margin,
+                                                budget_review_area.geometry().top()+self.default_widget_margin,
+                                            ),
+                                            QSize(25,25)
+                                            )
+            for progress_bar_component in progress_bar_widgets:
+                progress_bar_component[0].setGeometry(
+                                                        QRect(
+                                                            QPoint(
+                                                                prev_selector_geometries.left(),
+                                                                prev_selector_geometries.bottom()+self.default_widget_margin
+                                                                ),
+                                                            QSize(50, 25)
+                                                        )
+                                                    )
+                progress_bar_component[1].setGeometry(
+                                                        QRect(
+                                                            QPoint(
+                                                                progress_bar_component[0].geometry().right() + self.default_widget_margin,
+                                                                progress_bar_component[0].geometry().top()
+                                                                ),
+                                                            QPoint(
+                                                                budget_review_area.geometry().right()-self.default_widget_margin,
+                                                                progress_bar_component[0].geometry().bottom()
+                                                            )
+                                                        )
+                                                    )
+                prev_selector_geometries = progress_bar_component[0].geometry()
 
         home.resizeEvent = _resize
 
@@ -466,9 +512,28 @@ class ExtendedTableWidget(QTableWidget):
 # reads all CSV files individually then combines them
 class Transactions():
     def __init__(self):
+        self.curr_configs = read_configs()
         self.headers = defaults(headers=True)
-        self.categories = read_configs()["categories"]
+        self.accounts = self.curr_configs["accounts"]
+        self.categories = self.curr_configs["categories"]
         self.tables = self.get_all_account_tables()
+
+    def get_category_total(self, category_name):
+        try:
+            category_budget = self.categories[category_name]
+
+            actual_amonut = 0
+            for table_name, table in self.tables.items():
+                for row_index in range(table.rowCount()):
+                    transaction_category = table.item(row_index, table.columnCount()-1).text()
+                    if transaction_category == category_name:
+                        actual_amonut += float(table.item(row_index, self.headers.index("amount")).text())
+
+            return abs(actual_amonut)
+
+        except KeyError as e:
+            print("That category name doesn't exist")
+            return None
 
     def auto_category(self, transaction):
         # reads in user defined rules from configs file

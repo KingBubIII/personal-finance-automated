@@ -68,5 +68,3 @@ def add_override(configs, account_name, row, category):
         configs['accounts'][account_name]['overrides'].update({str(row):category})
 
     return configs
-
-add_category()
