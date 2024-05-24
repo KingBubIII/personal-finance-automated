@@ -24,8 +24,8 @@ class MainWindow_(QWidget):
 
     def _refresh_home_screen(self):
         self.layout().removeWidget(self.layout().widget(0))
-        self.init_home_screen()
         self.transactions_class.refresh()
+        self.init_home_screen()
 
     def init_home_screen(self):
         default_margin = 25
