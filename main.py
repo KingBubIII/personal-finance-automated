@@ -5,6 +5,7 @@ import classes
 # init all nessessary window objects that everything else will attach to
 app = QApplication()
 
-window_obj = classes.MainWindow_()
+all_transactions = classes.Transactions()
+window_obj = classes.MainWindow_(all_transactions)
 
 sys.exit(app.exec())

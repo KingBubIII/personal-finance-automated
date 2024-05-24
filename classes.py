@@ -6,65 +6,26 @@ from account_setup import defaults, add_override, add_account
 from wizardsAndForms import add_account_wizard
 
 class MainWindow_(QWidget):
-    def __init__(self):
+    def __init__(self, transactions_class):
         super().__init__()
         self.show()
 
         self.setLayout(QStackedLayout())
 
         self.setMinimumSize(960,540)
-        self.default_widget_margin = 25
+
+        self.transactions_class = transactions_class
 
         self.init_home_screen()
 
-    def _attach_all_tables(self, accounts_class, display_window):
-        for account_name, table_obj in accounts_class.tables.items():
-            display_window.layout().addWidget(table_obj, 1, 0)
-
-    def _show_table(self, window_class, table):
-        table.raise_()
-
-    def _add_view(self, view, index=None):
-        if index is None:
-            self.layout().addWidget(view)
-            self.layout().setCurrentWidget(view)
-        else:
-            self.layout().insertWidget(0, view)
+    def add_view(self, view, index=0):
+        self.layout().insertWidget(index, view)
+        self.layout().setCurrentWidget(view)
 
     def _refresh_home_screen(self):
         self.layout().removeWidget(self.layout().widget(0))
         self.init_home_screen()
-
-    def start_CSV_review(self, selected_tables):
-        CSV_review = QWidget(self)
-        CSV_review_layout = QGridLayout(CSV_review)
-
-        # create a object for holding and manipulating CSV data
-        all_accounts = Transactions()
-
-        self._attach_all_tables(all_accounts, CSV_review)
-
-        # drop down menu to allow users to switch between account tables
-        account_selector = QComboBox()
-        account_selector.addItems(selected_tables)
-        # show account table when the drop down menu choice is changed
-        account_selector.currentTextChanged.connect( lambda text: self._show_table(CSV_review, all_accounts.tables[text]) )
-        # on init show the first table in the list
-        self._show_table(CSV_review, all_accounts.tables[account_selector.itemText(0)])
-
-        CSV_review.layout().addWidget(account_selector, 2, 0)
-
-        # a button to save all manual overrides and close the window
-        return_btn = QPushButton("Save and Exit")
-        def _save_and_exit():
-            all_accounts.commit_all_overrides()
-            self.layout().removeWidget(CSV_review)
-
-        return_btn.clicked.connect(_save_and_exit)
-
-        CSV_review.layout().addWidget(return_btn, 0, 0)
-
-        self._add_view(CSV_review)
+        self.transactions_class.refresh()
 
     def init_home_screen(self):
         default_margin = 25
@@ -97,11 +58,7 @@ class MainWindow_(QWidget):
 
         edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
 
-        def get_selected_accounts():
-            selected_account_objs = list(filter(lambda account: account.isChecked(), account_check_boxes))
-            return [obj.text() for obj in selected_account_objs]
-
-        edit_transactions_btn.clicked.connect(lambda ctx: self.start_CSV_review(get_selected_accounts()) )
+        edit_transactions_btn.clicked.connect(lambda ctx: self.transactions_class.CSV_review(self) )
         import_account_btn.clicked.connect(lambda ctx: add_account_wizard(self))
 
         progress_bar_widgets = []
@@ -111,7 +68,7 @@ class MainWindow_(QWidget):
                 curr_bar = QProgressBar(home)
                 curr_bar.setMinimum(0)
                 curr_bar.setMaximum(budget)
-                curr_bar.setValue(Transactions().get_category_total(category_name))
+                curr_bar.setValue(self.transactions_class.get_category_total(category_name))
 
                 bar_title = QLabel(category_name,home)
 
@@ -192,8 +149,8 @@ class MainWindow_(QWidget):
 
             prev_selector_geometries =  QRect(
                                             QPoint(
-                                                budget_review_area.geometry().left()+self.default_widget_margin,
-                                                budget_review_area.geometry().top()+self.default_widget_margin,
+                                                budget_review_area.geometry().left()+25,
+                                                budget_review_area.geometry().top()+25,
                                             ),
                                             QSize(25,25)
                                             )
@@ -202,7 +159,7 @@ class MainWindow_(QWidget):
                                                         QRect(
                                                             QPoint(
                                                                 prev_selector_geometries.left(),
-                                                                prev_selector_geometries.bottom()+self.default_widget_margin
+                                                                prev_selector_geometries.bottom()+25
                                                                 ),
                                                             QSize(50, 25)
                                                         )
@@ -210,11 +167,11 @@ class MainWindow_(QWidget):
                 progress_bar_component[1].setGeometry(
                                                         QRect(
                                                             QPoint(
-                                                                progress_bar_component[0].geometry().right() + self.default_widget_margin,
+                                                                progress_bar_component[0].geometry().right() + 25,
                                                                 progress_bar_component[0].geometry().top()
                                                                 ),
                                                             QPoint(
-                                                                budget_review_area.geometry().right()-self.default_widget_margin,
+                                                                budget_review_area.geometry().right()-25,
                                                                 progress_bar_component[0].geometry().bottom()
                                                             )
                                                         )
@@ -223,7 +180,7 @@ class MainWindow_(QWidget):
 
         home.resizeEvent = _resize
 
-        self._add_view(home, 0)
+        self.add_view(home, 0)
 
 class ComboBoxDelegate(QStyledItemDelegate):
     def __init__(self, dropdown_options: list[str]) -> None:
@@ -262,6 +219,15 @@ class ExtendedTableWidget(QTableWidget):
 # reads all CSV files individually then combines them
 class Transactions():
     def __init__(self):
+        self.curr_configs = None
+        self.headers = None
+        self.accounts = None
+        self.categories = None
+        self.tables = None
+
+        self.refresh()
+
+    def refresh(self):
         self.curr_configs = read_configs()
         self.headers = defaults(headers=True)
         self.accounts = self.curr_configs["accounts"]
@@ -359,3 +325,32 @@ class Transactions():
     def commit_all_overrides(self):
         for table_name, table_obj in self.tables.items():
             table_obj.commit_overrides()
+
+    def CSV_review(self, window):
+        CSV_review = QWidget(window)
+        CSV_review_layout = QGridLayout(CSV_review)
+
+        for account_name, table_obj in self.tables.items():
+            CSV_review.layout().addWidget(table_obj, 1, 0)
+
+        # drop down menu to allow users to switch between account tables
+        account_selector = QComboBox()
+        account_selector.addItems(self.tables.keys())
+        # show account table when the drop down menu choice is changed
+        account_selector.currentTextChanged.connect( lambda text: self.tables[text].raise_() )
+        # on init show the first table in the list
+        self.tables[account_selector.itemText(0)].raise_()
+
+        CSV_review.layout().addWidget(account_selector, 2, 0)
+
+        # a button to save all manual overrides and close the window
+        return_btn = QPushButton("Save and Exit")
+        def _save_and_exit():
+            self.commit_all_overrides()
+            window.layout().removeWidget(CSV_review)
+
+        return_btn.clicked.connect(_save_and_exit)
+
+        CSV_review.layout().addWidget(return_btn, 0, 0)
+
+        window.add_view(CSV_review)

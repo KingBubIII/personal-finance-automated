@@ -253,4 +253,4 @@ def add_account_wizard(window):
     # _resize()
     account_importing_view.resizeEvent = _resize
 
-    window._add_view(account_importing_view)
+    window.add_view(account_importing_view)
