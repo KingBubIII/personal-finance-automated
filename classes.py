@@ -1,5 +1,6 @@
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QWidget
 from configs_ops import read_configs, get_account_details
 from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, add_override, add_account
@@ -65,10 +66,9 @@ class MainWindow_(QWidget):
 
         for category_name, budget in configs["categories"].items():
             if not category_name == 'Income':
-                curr_bar = QProgressBar(home)
-                curr_bar.setMinimum(0)
-                curr_bar.setMaximum(budget)
-                curr_bar.setValue(self.transactions_class.get_category_total(category_name))
+                curr_bar = ExtendedPogressBar(home)
+                curr_bar.setActualRange(0, budget)
+                curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
 
                 bar_title = QLabel(category_name,home)
 
@@ -215,6 +215,38 @@ class ExtendedTableWidget(QTableWidget):
         # empties out all overrides
         self.uncommited_overrides = {}
 
+class ExtendedPogressBar(QProgressBar):
+    def __init__(self, parent: QWidget | None = ...) -> None:
+        super().__init__(parent)
+
+        self.setRange(0, 100)
+        self.setValue(0)
+        self.actual_min = 0
+        self.actual_val = 0
+        self.actual_max = 100
+
+    def refresh_display_value(self):
+        test = self.actual_val/self.actual_max*100
+        self.setValue( min(test, 100) )
+        self.setFormat( f"${self.actual_val}/${self.actual_max}" )
+
+    def setActualMax(self, value):
+        self.actual_max = value
+        self.refresh_display_value()
+
+    def setActualMin(self, value):
+        self.actual_min = value
+        self.refresh_display_value()
+
+    def setActualRange(self, minimum, maximum):
+        self.actual_min = minimum
+        self.actual_max = maximum
+        self.refresh_display_value()
+
+    def setActualValue(self, value):
+        self.actual_val = value
+        self.refresh_display_value()
+
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
 class Transactions():
@@ -245,7 +277,7 @@ class Transactions():
                     if transaction_category == category_name:
                         actual_amonut += float(table.item(row_index, self.headers.index("amount")).text())
 
-            return abs(actual_amonut)
+            return round(abs(actual_amonut),2)
 
         except KeyError as e:
             print("That category name doesn't exist")
