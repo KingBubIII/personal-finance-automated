@@ -17,6 +17,8 @@ class MainWindow_(QWidget):
 
         self.transactions_class = transactions_class
 
+        self.layout().widgetRemoved.connect(self._refresh_home_screen)
+
         self.init_home_screen()
 
     def add_view(self, view, index=0):
@@ -24,7 +26,6 @@ class MainWindow_(QWidget):
         self.layout().setCurrentWidget(view)
 
     def _refresh_home_screen(self):
-        self.layout().removeWidget(self.layout().widget(0))
         self.transactions_class.refresh()
         self.init_home_screen()
 
@@ -66,13 +67,11 @@ class MainWindow_(QWidget):
 
         for category_name, budget in configs["categories"].items():
             if not category_name == 'Income':
-                curr_bar = ExtendedPogressBar(home)
+                curr_bar = ExtendedPogressBar(home, category_name)
                 curr_bar.setActualRange(0, budget)
                 curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
 
-                bar_title = QLabel(category_name,home)
-
-                progress_bar_widgets.append([bar_title, curr_bar])
+                progress_bar_widgets.append(curr_bar)
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -153,30 +152,18 @@ class MainWindow_(QWidget):
                                                 budget_review_area.geometry().top()+25,
                                             ),
                                             QSize(25,25)
-                                            )
-            for progress_bar_component in progress_bar_widgets:
-                progress_bar_component[0].setGeometry(
-                                                        QRect(
-                                                            QPoint(
-                                                                prev_selector_geometries.left(),
-                                                                prev_selector_geometries.bottom()+25
-                                                                ),
-                                                            QSize(50, 25)
-                                                        )
-                                                    )
-                progress_bar_component[1].setGeometry(
-                                                        QRect(
-                                                            QPoint(
-                                                                progress_bar_component[0].geometry().right() + 25,
-                                                                progress_bar_component[0].geometry().top()
-                                                                ),
-                                                            QPoint(
-                                                                budget_review_area.geometry().right()-25,
-                                                                progress_bar_component[0].geometry().bottom()
-                                                            )
-                                                        )
-                                                    )
-                prev_selector_geometries = progress_bar_component[0].geometry()
+                                        )
+            for progress_bar in progress_bar_widgets:
+                progress_bar.setGeometry(
+                                        QRect(
+                                            QPoint(
+                                                prev_selector_geometries.left(),
+                                                prev_selector_geometries.bottom()+25
+                                                ),
+                                            QSize(budget_review_area.width()-25, 25)
+                                        )
+                                    )
+                prev_selector_geometries = progress_bar.geometry()
 
         home.resizeEvent = _resize
 
@@ -216,19 +203,48 @@ class ExtendedTableWidget(QTableWidget):
         self.uncommited_overrides = {}
 
 class ExtendedPogressBar(QProgressBar):
-    def __init__(self, parent: QWidget | None = ...) -> None:
+    def __init__(self, parent: QWidget | None, category_name) -> None:
         super().__init__(parent)
 
+        # set display values to 0-100 to represent percentages
         self.setRange(0, 100)
         self.setValue(0)
+
+        # actual values that will be used for calculation purposes
         self.actual_min = 0
         self.actual_val = 0
         self.actual_max = 100
 
+        # identifier and for user viewing
+        self.category_name = category_name
+
+        self.bar_description_text = QLabel(self)
+        self.bar_description_text.setAlignment(Qt.AlignCenter)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        # update the text shown
+        self.bar_description_text.setText(f"{self.category_name}: ${self.actual_val}/${self.actual_max}")
+        # update recommended size
+        self.bar_description_text.setGeometry(
+                                                QRect(
+                                                        QPoint(self.bar_description_text.geometry().topLeft()),
+                                                        self.bar_description_text.sizeHint()
+                                                    )
+                                            )
+        # move text to center over the progress bar
+        self.bar_description_text.move(
+                                        (self.width()//2)-(self.bar_description_text.width()//2),
+                                        (self.height()//2)-(self.bar_description_text.height()//2)
+                                    )
+
     def refresh_display_value(self):
         test = self.actual_val/self.actual_max*100
         self.setValue( min(test, 100) )
-        self.setFormat( f"${self.actual_val}/${self.actual_max}" )
+        self.bar_description_text.setText(f"{self.category_name}: ${self.actual_val}/${self.actual_max}")
+        # self.setFormat( f"${self.actual_val}/${self.actual_max}" )
+        self.setFormat("")
 
     def setActualMax(self, value):
         self.actual_max = value
@@ -380,6 +396,7 @@ class Transactions():
         def _save_and_exit():
             self.commit_all_overrides()
             window.layout().removeWidget(CSV_review)
+
 
         return_btn.clicked.connect(_save_and_exit)
 
