@@ -266,10 +266,12 @@ class ExtendedPogressBar(QProgressBar):
                                     )
 
     def refresh_display_value(self):
-        test = self.actual_val/self.actual_max*100
-        self.setValue( min(test, 100) )
+        if self.actual_max == 0:
+            percentage = self.actual_val/1*100
+        else:
+            percentage = self.actual_val/self.actual_max*100
+        self.setValue( min(percentage, 100) )
         self.bar_description_text.setText(f"{self.category_name}: ${self.actual_val}/${self.actual_max}")
-        # self.setFormat( f"${self.actual_val}/${self.actual_max}" )
         self.setFormat("")
 
     def setActualMax(self, value):

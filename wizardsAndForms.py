@@ -261,6 +261,18 @@ def edit_categories_form(window):
 
     save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
 
+    def _save_and_exit():
+        categories_dict = {}
+        for objs in all_category_objs:
+            categories_dict.update( {objs[0].toPlainText():int(objs[1].toPlainText())} )
+
+        update_categories(categories_dict)
+
+        window.layout().removeWidget(edit_categories_view)
+
+        return configs
+    save_exit_btn.clicked.connect(lambda ctx: _save_and_exit())
+
     configs = read_configs()
 
     all_category_objs = []
@@ -273,17 +285,20 @@ def edit_categories_form(window):
 
             all_category_objs.append([curr_category_name_obj, curr_category_budget_obj])
 
-    def _save_and_exit():
-        categories_dict = {}
-        for objs in all_category_objs:
-            categories_dict.update( {objs[0].toPlainText():int(objs[1].toPlainText())} )
+    new_category_btn = QPushButton("Add New Category", edit_categories_view)
 
-        update_categories(categories_dict)
+    def add_new_category():
+        new_category_name_txt_edit = QTextEdit("Example", edit_categories_view)
+        new_category_name_txt_edit.show()
+        new_category_budget_txt_edit = QTextEdit("0", edit_categories_view)
+        new_category_budget_txt_edit.show()
 
-        window.layout().removeWidget(edit_categories_view)
+        new_category_objs = [new_category_name_txt_edit, new_category_budget_txt_edit]
+        all_category_objs.append(new_category_objs)
 
-        return configs
-    save_exit_btn.clicked.connect(lambda ctx: _save_and_exit())
+        _resize()
+
+    new_category_btn.clicked.connect(lambda ctx: add_new_category())
 
     def _resize():
         save_exit_btn.setGeometry(
@@ -308,6 +323,14 @@ def edit_categories_form(window):
                                             )
                                         )
             prev_obj = category_obj[0]
+
+        new_category_btn.setGeometry(
+                                        QRect(
+                                                QPoint( 26,
+                                                        prev_obj.geometry().bottom()+26),
+                                                QSize(150,26)
+                                            )
+                                    )
 
     _resize()
 
