@@ -63,6 +63,9 @@ class MainWindow_(QWidget):
         edit_transactions_btn.clicked.connect(lambda ctx: self.transactions_class.CSV_review(self) )
         import_account_btn.clicked.connect(lambda ctx: add_account_wizard(self))
 
+        edit_categories_btn = QPushButton("Edit Categories", home)
+        edit_rules_btn = QPushButton("Edit Rules", home)
+
         progress_bar_widgets = []
 
         for category_name, budget in configs["categories"].items():
@@ -144,6 +147,28 @@ class MainWindow_(QWidget):
                                         default_margin,
                                         scroll_obj.geometry().width()-default_margin,
                                         default_margin*len(account_check_boxes)
+                                    )
+
+            edit_categories_btn.setGeometry(
+                                            QRect(
+                                                    QPoint(
+                                                            budget_review_area.geometry().left()+25,
+                                                            budget_review_area.geometry().top()+25
+                                                        ),
+                                                    QSize( (budget_review_area.geometry().width()//2)-50, 25 )
+                                            )
+                                        )
+
+            edit_rules_btn.setGeometry(
+                                        QRect(
+                                                QPoint(
+                                                        edit_categories_btn.geometry().right()+25,
+                                                        edit_categories_btn.geometry().top()
+                                                    ),
+                                                QPoint( budget_review_area.geometry().right()-25,
+                                                        edit_categories_btn.geometry().bottom()
+                                                    )
+                                        )
                                     )
 
             prev_selector_geometries =  QRect(
