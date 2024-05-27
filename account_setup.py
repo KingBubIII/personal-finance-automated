@@ -17,11 +17,9 @@ def add_account(configs, account_name, file_path, user_defined_indexes):
     return configs
 
 @update_configs
-def add_category(configs):
-    # get user input for the name of the rule
-    category_name = input("Name your category: ")
+def update_categories(configs, new_categories):
     # adds the rule with 3 blanks in a list for the description match, lower limit, upper limit
-    configs["categories"].update({category_name:0})
+    configs["categories"] = new_categories
 
     return configs
 

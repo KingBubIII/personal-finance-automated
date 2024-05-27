@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QWidget
 from configs_ops import read_configs, get_account_details
 from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, add_override, add_account
-from wizardsAndForms import add_account_wizard
+from wizardsAndForms import *
 
 class MainWindow_(QWidget):
     def __init__(self, transactions_class):
@@ -30,7 +30,7 @@ class MainWindow_(QWidget):
         self.init_home_screen()
 
     def init_home_screen(self):
-        default_margin = 25
+        default_margin = 26
 
         # whole window and layout
         home = QWidget(self)
@@ -64,6 +64,7 @@ class MainWindow_(QWidget):
         import_account_btn.clicked.connect(lambda ctx: add_account_wizard(self))
 
         edit_categories_btn = QPushButton("Edit Categories", home)
+        edit_categories_btn.clicked.connect(lambda ctx: edit_categories_form(self))
         edit_rules_btn = QPushButton("Edit Rules", home)
 
         progress_bar_widgets = []
@@ -152,20 +153,20 @@ class MainWindow_(QWidget):
             edit_categories_btn.setGeometry(
                                             QRect(
                                                     QPoint(
-                                                            budget_review_area.geometry().left()+25,
-                                                            budget_review_area.geometry().top()+25
+                                                            budget_review_area.geometry().left()+26,
+                                                            budget_review_area.geometry().top()+26
                                                         ),
-                                                    QSize( (budget_review_area.geometry().width()//2)-50, 25 )
+                                                    QSize( (budget_review_area.geometry().width()//2)-50, 26 )
                                             )
                                         )
 
             edit_rules_btn.setGeometry(
                                         QRect(
                                                 QPoint(
-                                                        edit_categories_btn.geometry().right()+25,
+                                                        edit_categories_btn.geometry().right()+26,
                                                         edit_categories_btn.geometry().top()
                                                     ),
-                                                QPoint( budget_review_area.geometry().right()-25,
+                                                QPoint( budget_review_area.geometry().right()-26,
                                                         edit_categories_btn.geometry().bottom()
                                                     )
                                         )
@@ -173,19 +174,19 @@ class MainWindow_(QWidget):
 
             prev_selector_geometries =  QRect(
                                             QPoint(
-                                                budget_review_area.geometry().left()+25,
-                                                budget_review_area.geometry().top()+25,
+                                                budget_review_area.geometry().left()+26,
+                                                budget_review_area.geometry().top()+26,
                                             ),
-                                            QSize(25,25)
+                                            QSize(26,26)
                                         )
             for progress_bar in progress_bar_widgets:
                 progress_bar.setGeometry(
                                         QRect(
                                             QPoint(
                                                 prev_selector_geometries.left(),
-                                                prev_selector_geometries.bottom()+25
+                                                prev_selector_geometries.bottom()+26
                                                 ),
-                                            QSize(budget_review_area.width()-25, 25)
+                                            QSize(budget_review_area.width()-26, 26)
                                         )
                                     )
                 prev_selector_geometries = progress_bar.geometry()

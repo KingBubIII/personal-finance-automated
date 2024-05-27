@@ -1,13 +1,13 @@
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
-from configs_ops import read_configs, get_account_details
+from configs_ops import read_configs, get_account_details, update_configs
 from csv_ops import get_data_from_account, get_headers
-from account_setup import defaults, add_override, add_account
+from account_setup import defaults, update_categories, add_account
 
 def add_account_wizard(window):
     account_importing_view = QWidget(window)
     add_account_layout = QGridLayout(account_importing_view)
-    default_margin = 25
+    default_margin = 26
 
     close_btn = QPushButton("close", account_importing_view)
     import_CSV_btn = QPushButton("Import CSV", account_importing_view)
@@ -254,3 +254,61 @@ def add_account_wizard(window):
     account_importing_view.resizeEvent = _resize
 
     window.add_view(account_importing_view)
+
+def edit_categories_form(window):
+    edit_categories_view = QWidget(window)
+    layout = QGridLayout(edit_categories_view)
+
+    save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
+
+    configs = read_configs()
+
+    all_category_objs = []
+    for category_name, category_budget in configs["categories"].items():
+        if not category_name == "Income":
+            curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
+            if category_name == "Misc":
+                curr_category_name_obj.setDisabled(True)
+            curr_category_budget_obj = QTextEdit(str(category_budget), edit_categories_view)
+
+            all_category_objs.append([curr_category_name_obj, curr_category_budget_obj])
+
+    def _save_and_exit():
+        categories_dict = {}
+        for objs in all_category_objs:
+            categories_dict.update( {objs[0].toPlainText():int(objs[1].toPlainText())} )
+
+        update_categories(categories_dict)
+
+        window.layout().removeWidget(edit_categories_view)
+
+        return configs
+    save_exit_btn.clicked.connect(lambda ctx: _save_and_exit())
+
+    def _resize():
+        save_exit_btn.setGeometry(
+                                    QRect(
+                                            QPoint(26, 26),
+                                            QSize(100, 26)
+                                        )
+                                    )
+
+        prev_obj = save_exit_btn
+        for category_obj in all_category_objs:
+            category_obj[0].setGeometry(
+                                        QRect(
+                                                QPoint(26, prev_obj.geometry().bottom()+26),
+                                                QSize(100, 26 )
+                                            )
+                                        )
+            category_obj[1].setGeometry(
+                                        QRect(
+                                                QPoint(category_obj[0].geometry().right()+26, prev_obj.geometry().bottom()+26),
+                                                QSize(100, 26)
+                                            )
+                                        )
+            prev_obj = category_obj[0]
+
+    _resize()
+
+    window.add_view(edit_categories_view)
