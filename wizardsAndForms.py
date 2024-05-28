@@ -276,14 +276,31 @@ def edit_categories_form(window):
     configs = read_configs()
 
     all_category_objs = []
-    for category_name, category_budget in configs["categories"].items():
+    def _remove_category(index):
+        # gets all objects associated with selected category
+        category_objs = all_category_objs[index]
+        # sets all objects to hidden
+        for obj in category_objs:
+            obj.setVisible(False)
+        # remove all referances to object, effectively deleting them
+        all_category_objs.pop(index)
+        # call move form objects to right place after deleting some
+        _resize()
+
+    for index, (category_name, category_budget) in enumerate(configs["categories"].items()):
         if not category_name == "Income":
             curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
             if category_name == "Misc":
                 curr_category_name_obj.setDisabled(True)
+
             curr_category_budget_obj = QTextEdit(str(category_budget), edit_categories_view)
 
-            all_category_objs.append([curr_category_name_obj, curr_category_budget_obj])
+            curr_category_remove_btn = QPushButton("X", edit_categories_view)
+            curr_category_remove_btn.clicked.connect(lambda ctx: _remove_category(index))
+
+            all_curr_category_objs = [curr_category_name_obj, curr_category_budget_obj, curr_category_remove_btn]
+
+            all_category_objs.append(all_curr_category_objs)
 
     new_category_btn = QPushButton("Add New Category", edit_categories_view)
 
@@ -293,7 +310,12 @@ def edit_categories_form(window):
         new_category_budget_txt_edit = QTextEdit("0", edit_categories_view)
         new_category_budget_txt_edit.show()
 
-        new_category_objs = [new_category_name_txt_edit, new_category_budget_txt_edit]
+        curr_category_remove_btn = QPushButton("X", edit_categories_view)
+        curr_category_remove_btn.show()
+        curr_category_remove_btn.clicked.connect(lambda ctx: _remove_category(len(all_category_objs)))
+
+
+        new_category_objs = [new_category_name_txt_edit, new_category_budget_txt_edit, curr_category_remove_btn]
         all_category_objs.append(new_category_objs)
 
         _resize()
@@ -320,6 +342,12 @@ def edit_categories_form(window):
                                         QRect(
                                                 QPoint(category_obj[0].geometry().right()+26, prev_obj.geometry().bottom()+26),
                                                 QSize(100, 26)
+                                            )
+                                        )
+            category_obj[2].setGeometry(
+                                        QRect(
+                                                QPoint(category_obj[1].geometry().right()+26, prev_obj.geometry().bottom()+26),
+                                                QSize(26, 26)
                                             )
                                         )
             prev_obj = category_obj[0]

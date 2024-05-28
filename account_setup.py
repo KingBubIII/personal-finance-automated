@@ -21,6 +21,10 @@ def update_categories(configs, new_categories):
     # adds the rule with 3 blanks in a list for the description match, lower limit, upper limit
     configs["categories"] = new_categories
 
+    for account_name, account_configs in configs["accounts"].items():
+        # removes all overrides that no longer apply because that category is gone
+        configs["accounts"][account_name]["overrides"] = { k:v for k, v in account_configs["overrides"].items() if v in new_categories.keys() }
+
     return configs
 
 @update_configs
