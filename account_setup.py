@@ -28,32 +28,8 @@ def update_categories(configs, new_categories):
     return configs
 
 @update_configs
-def add_rule(configs, category_name):
-    if category_name in configs["categories"]:
-        description_match = input('Description matching string: ')
-
-        limits = [None, None]
-
-        for index in range(len(limits)):
-            try_again = True
-            # continue to prompt until a valid input; blank or a number
-            while try_again:
-                temp_limit = input('{0} limit: '.format("Lower" if index==0 else "Upper"))
-                # check for int value
-                try:
-                    limits[index] = int(temp_limit)
-                    try_again = False
-                # error check non-int values
-                except ValueError:
-                    # check for blank value
-                    if temp_limit == '':
-                        limits[index]= None
-                        try_again = False
-
-        configs['rules'].append([description_match, *limits, category_name])
-        print('Successful')
-    else:
-        print('Category does not exist')
+def add_rule(configs, new_rule):
+    configs["rules"].append(new_rule)
 
     return configs
 

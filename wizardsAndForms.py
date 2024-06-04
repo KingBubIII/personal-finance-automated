@@ -2,7 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from configs_ops import read_configs, get_account_details, update_configs
 from csv_ops import get_data_from_account, get_headers
-from account_setup import defaults, update_categories, add_account
+from account_setup import defaults, update_categories, add_account, add_rule
 
 def add_account_wizard(window):
     account_importing_view = QWidget(window)
@@ -363,3 +363,117 @@ def edit_categories_form(window):
     _resize()
 
     window.add_view(edit_categories_view)
+
+def add_rule_view(window):
+    add_rule_view = QWidget(window)
+    layout = QGridLayout(add_rule_view)
+
+    configs = read_configs()
+
+    cancel_btn = QPushButton("Exit", add_rule_view)
+
+    def _exit():
+        window.layout().removeWidget(add_rule_view)
+
+    cancel_btn.clicked.connect(lambda ctx: _exit())
+
+    text_match_label = QLabel("Text Match: ", add_rule_view)
+    text_match = QTextEdit(add_rule_view)
+
+    lower_limit_label = QLabel("Lower Limit: ", add_rule_view)
+    lower_limit = QTextEdit(add_rule_view)
+
+    upper_limit_label = QLabel("Upper Match: ", add_rule_view)
+    upper_limit = QTextEdit(add_rule_view)
+
+    selected_category_label = QLabel("Select a category: ", add_rule_view)
+    category_dropdown = QComboBox(add_rule_view)
+    category_dropdown.addItems(configs["categories"].keys())
+
+    save_btn = QPushButton("Save Rule", add_rule_view)
+
+    def _save_rule():
+        new_rule = [
+                        text_match.toPlainText(),
+                        int(upper_limit.toPlainText())*-1,
+                        int(lower_limit.toPlainText())*-1,
+                        category_dropdown.currentText()
+                    ]
+        add_rule(new_rule)
+
+        text_match.setPlainText("")
+        lower_limit.setPlainText("")
+        upper_limit.setPlainText("")
+
+    save_btn.clicked.connect(_save_rule)
+
+    def _resize():
+        cancel_btn.setGeometry(
+                                    QRect(
+                                            QPoint(26, 26),
+                                            QSize(100, 26)
+                                        )
+                                )
+
+        text_match_label.setGeometry(
+                                QRect(
+                                        QPoint(26, cancel_btn.geometry().bottom()+26),
+                                        QSize(200, 26)
+                                    )
+                            )
+        text_match.setGeometry(
+                                QRect(
+                                        QPoint(26, text_match_label.geometry().bottom()),
+                                        QSize(200, 26)
+                                    )
+                            )
+
+        lower_limit_label.setGeometry(
+                                QRect(
+                                        QPoint(26, text_match.geometry().bottom()+26),
+                                        QSize(200, 26)
+                                    )
+                            )
+        lower_limit.setGeometry(
+                                QRect(
+                                        QPoint(26, lower_limit_label.geometry().bottom()),
+                                        QSize(200, 26)
+                                    )
+                            )
+
+        upper_limit_label.setGeometry(
+                                QRect(
+                                        QPoint(lower_limit_label.geometry().right()+26, lower_limit_label.geometry().top()),
+                                        QSize(200, 26)
+                                    )
+                            )
+        upper_limit.setGeometry(
+                                QRect(
+                                        QPoint(lower_limit.geometry().right()+26, lower_limit.geometry().top()),
+                                        QSize(200, 26)
+                                    )
+                            )
+
+        selected_category_label.setGeometry(
+                                            QRect(
+                                                    QPoint(26, lower_limit.geometry().bottom()+26),
+                                                    QSize(200, 26)
+                                                )
+                                        )
+        category_dropdown.setGeometry(
+                                        QRect(
+                                                QPoint(26, selected_category_label.geometry().bottom()),
+                                                QSize(200, 26)
+                                            )
+                                    )
+
+        save_btn.setGeometry(
+                            QRect(
+                                            QPoint(26, category_dropdown.geometry().bottom()+26),
+                                            QSize(100, 26)
+                                        )
+                        )
+
+    _resize()
+
+    window.add_view(add_rule_view)
