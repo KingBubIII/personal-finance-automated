@@ -287,7 +287,7 @@ def edit_categories_form(window):
         # call move form objects to right place after deleting some
         _resize()
 
-    for index, (category_name, category_budget) in enumerate(configs["categories"].items()):
+    for curr_index, (category_name, category_budget) in enumerate(configs["categories"].items()):
         if not category_name == "Income":
             curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
             if category_name == "Misc":
@@ -296,7 +296,7 @@ def edit_categories_form(window):
             curr_category_budget_obj = QTextEdit(str(category_budget), edit_categories_view)
 
             curr_category_remove_btn = QPushButton("X", edit_categories_view)
-            curr_category_remove_btn.clicked.connect(lambda ctx: _remove_category(index))
+            curr_category_remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_category(index))
 
             all_curr_category_objs = [curr_category_name_obj, curr_category_budget_obj, curr_category_remove_btn]
 
