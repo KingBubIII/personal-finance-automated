@@ -322,7 +322,7 @@ def edit_categories_form(window):
 
     new_category_btn.clicked.connect(lambda ctx: add_new_category())
 
-    def _resize():
+    def _resize(ctx=None):
         save_exit_btn.setGeometry(
                                     QRect(
                                             QPoint(26, 26),
@@ -361,10 +361,11 @@ def edit_categories_form(window):
                                     )
 
     _resize()
+    edit_categories_view.resizeEvent = _resize
 
     window.add_view(edit_categories_view)
 
-def add_rule_view(window):
+def add_rule_form(window):
     add_rule_view = QWidget(window)
     layout = QGridLayout(add_rule_view)
 
@@ -407,7 +408,7 @@ def add_rule_view(window):
 
     save_btn.clicked.connect(_save_rule)
 
-    def _resize():
+    def _resize(ctx=None):
         cancel_btn.setGeometry(
                                     QRect(
                                             QPoint(26, 26),
@@ -476,4 +477,94 @@ def add_rule_view(window):
 
     _resize()
 
+    add_rule_view.resizeEvent = _resize
+
     window.add_view(add_rule_view)
+
+def all_rules_manager(window):
+    all_rules_view = QWidget(window)
+    layout = QGridLayout(all_rules_view)
+
+    cancel_btn = QPushButton("Exit", all_rules_view)
+
+    def _exit():
+        window.layout().removeWidget(all_rules_view)
+
+    cancel_btn.clicked.connect(lambda ctx: _exit())
+
+    configs = read_configs()
+
+    all_rule_components = []
+    for rule_data in configs["rules"][2::]:
+        rule_brief = QTextEdit(all_rules_view)
+        brief_text = "\n".join(
+                                [
+                                    f"Text Match: \"{rule_data[0]}\"",
+                                    f"Lower Limit: {rule_data[1]}",
+                                    f"Upper Limit: {rule_data[2]}",
+                                    f"Category: {rule_data[3]}"
+                                ]
+                            )
+        rule_brief.setText(brief_text)
+        rule_brief.setLineWrapMode(QTextEdit.NoWrap)
+        rule_brief.setEnabled(False)
+
+        remove_btn = QPushButton("X", all_rules_view)
+
+        edit_btn = QPushButton("Edit", all_rules_view)
+
+        all_rule_components.append([remove_btn, edit_btn, rule_brief])
+
+        new_rule_btn = QPushButton("Add New Rule", all_rules_view)
+
+        save_btn = QPushButton("Save", all_rules_view)
+
+    def _resize(ctx=None):
+        cancel_btn.setGeometry(
+                                QRect(
+                                        QPoint(26, 26),
+                                        QSize(100, 26)
+                                    )
+                                )
+
+        for component in all_rule_components:
+            component[0].setGeometry(
+                                    QRect(
+                                            QPoint(26, cancel_btn.geometry().bottom()+26),
+                                            QSize(26, 26*3)
+                                        )
+                                    )
+            component[1].setGeometry(
+                                    QRect(
+                                            QPoint(component[0].geometry().right(), component[0].geometry().top()),
+                                            QSize(26, 26*3)
+                                        )
+                                    )
+            component[2].setGeometry(
+                                    QRect(
+                                            QPoint(component[1].geometry().right()+26, component[1].geometry().top()),
+                                            QSize(200, 26*3)
+                                        )
+                                    )
+
+
+        new_rule_btn.setGeometry(
+                            QRect(
+                                    QPoint(26, component[1].geometry().bottom()+26),
+                                    QSize(100, 26)
+                                )
+                            )
+
+        save_btn.setGeometry(
+                            QRect(
+                                    QPoint(26, new_rule_btn.geometry().bottom()+26),
+                                    QSize(100, 26)
+                                )
+                            )
+
+
+    _resize()
+
+    all_rules_view.resizeEvent = _resize
+
+    window.add_view(all_rules_view)

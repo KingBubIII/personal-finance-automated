@@ -66,7 +66,7 @@ class MainWindow_(QWidget):
         edit_categories_btn = QPushButton("Edit Categories", home)
         edit_categories_btn.clicked.connect(lambda ctx: edit_categories_form(self))
         edit_rules_btn = QPushButton("Edit Rules", home)
-        edit_rules_btn.clicked.connect(lambda ctx: add_rule_view(self))
+        edit_rules_btn.clicked.connect(lambda ctx: all_rules_manager(self))
 
         progress_bar_widgets = []
 
