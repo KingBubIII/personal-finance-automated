@@ -509,7 +509,7 @@ def all_rules_manager(window):
             obj.setVisible(False)
         # remove all referances to object, effectively deleting them
         all_rule_objs.pop(index)
-        rule_deletes.append(index)
+        staged_deletes.append(index)
         # call to move form objects to right place after deleting some
         _resize()
 
