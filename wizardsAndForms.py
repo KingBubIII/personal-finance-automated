@@ -2,7 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from configs_ops import read_configs, get_account_details, update_configs
 from csv_ops import get_data_from_account, get_headers
-from account_setup import defaults, update_categories, add_account, add_rule
+from account_setup import defaults, update_categories, add_account, add_rule, update_rules
 
 def add_account_wizard(window):
     account_importing_view = QWidget(window)
@@ -537,6 +537,19 @@ def all_rules_manager(window):
     new_rule_btn = QPushButton("Add New Rule", all_rules_view)
 
     save_btn = QPushButton("Save", all_rules_view)
+
+    def _save():
+        configs = read_configs()
+
+        for delete_index in staged_deletes:
+            configs["rules"].pop(delete_index+2)
+
+        update_rules(configs["rules"])
+
+        _exit()
+
+    save_btn.clicked.connect(_save)
+
 
     def _resize(ctx=None):
         cancel_btn.setGeometry(

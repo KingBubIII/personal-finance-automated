@@ -34,6 +34,12 @@ def add_rule(configs, new_rule):
     return configs
 
 @update_configs
+def update_rules(configs, all_rules):
+    configs["rules"] = all_rules
+
+    return configs
+
+@update_configs
 def add_override(configs, account_name, row, category):
     # converting row to a string type because json does not handle integers as keys
 
