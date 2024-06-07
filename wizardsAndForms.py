@@ -494,9 +494,27 @@ def all_rules_manager(window):
 
     configs = read_configs()
 
-    all_rule_components = []
-    for rule_data in configs["rules"][2::]:
-        rule_brief = QTextEdit(all_rules_view)
+    rule_placement_area = QWidget()
+    scroll_obj = QScrollArea(all_rules_view)
+    scroll_obj.setWidget(rule_placement_area)
+
+    all_rule_objs = []
+    staged_deletes = []
+
+    def _remove_rule(index):
+        # gets all objects associated with selected rule
+        rule_objs = all_rule_objs[index]
+        # sets all objects to hidden
+        for obj in rule_objs:
+            obj.setVisible(False)
+        # remove all referances to object, effectively deleting them
+        all_rule_objs.pop(index)
+        rule_deletes.append(index)
+        # call to move form objects to right place after deleting some
+        _resize()
+
+    for curr_index, rule_data in enumerate(configs["rules"][2::]):
+        rule_brief = QTextEdit(rule_placement_area)
         brief_text = "\n".join(
                                 [
                                     f"Text Match: \"{rule_data[0]}\"",
@@ -509,15 +527,16 @@ def all_rules_manager(window):
         rule_brief.setLineWrapMode(QTextEdit.NoWrap)
         rule_brief.setEnabled(False)
 
-        remove_btn = QPushButton("X", all_rules_view)
+        remove_btn = QPushButton("X", rule_placement_area)
+        remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_rule(index) )
 
-        edit_btn = QPushButton("Edit", all_rules_view)
+        edit_btn = QPushButton("Edit", rule_placement_area)
 
-        all_rule_components.append([remove_btn, edit_btn, rule_brief])
+        all_rule_objs.append([remove_btn, edit_btn, rule_brief])
 
-        new_rule_btn = QPushButton("Add New Rule", all_rules_view)
+    new_rule_btn = QPushButton("Add New Rule", all_rules_view)
 
-        save_btn = QPushButton("Save", all_rules_view)
+    save_btn = QPushButton("Save", all_rules_view)
 
     def _resize(ctx=None):
         cancel_btn.setGeometry(
@@ -527,40 +546,58 @@ def all_rules_manager(window):
                                     )
                                 )
 
-        for component in all_rule_components:
-            component[0].setGeometry(
+        save_btn.setGeometry(
+                            QRect(
+                                    QPoint(26, all_rules_view.geometry().bottom()-(26*2)),
+                                    QSize(100, 26)
+                                )
+                            )
+
+        new_rule_btn.setGeometry(
                                     QRect(
-                                            QPoint(26, cancel_btn.geometry().bottom()+26),
+                                            QPoint(26, save_btn.geometry().top()-(26*2)),
+                                            QSize(100, 26)
+                                        )
+                                    )
+
+        scroll_obj.setGeometry(
+                                QRect(
+                                    QPoint(26, cancel_btn.geometry().bottom()+26),
+                                    QPoint(400, new_rule_btn.geometry().top()-26)
+                                )
+                            )
+        rule_placement_area.setGeometry(
+                                        QRect(
+                                            QPoint(0, 0),
+                                            QPoint(scroll_obj.geometry().width()-26, 26*4*len(all_rule_objs))
+                                        )
+                                    )
+
+        prev_geometry = QPoint(0, 0)
+        for obj in all_rule_objs:
+            obj[0].setGeometry(
+                                    QRect(
+                                            QPoint(26, prev_geometry.y()+26),
                                             QSize(26, 26*3)
                                         )
                                     )
-            component[1].setGeometry(
+            obj[1].setGeometry(
                                     QRect(
-                                            QPoint(component[0].geometry().right(), component[0].geometry().top()),
+                                            QPoint(obj[0].geometry().right(), obj[0].geometry().top()),
                                             QSize(26, 26*3)
                                         )
                                     )
-            component[2].setGeometry(
+            obj[2].setGeometry(
                                     QRect(
-                                            QPoint(component[1].geometry().right()+26, component[1].geometry().top()),
+                                            QPoint(obj[1].geometry().right()+26, obj[1].geometry().top()),
                                             QSize(200, 26*3)
                                         )
                                     )
 
+            prev_geometry = obj[0].geometry().bottomLeft()
 
-        new_rule_btn.setGeometry(
-                            QRect(
-                                    QPoint(26, component[1].geometry().bottom()+26),
-                                    QSize(100, 26)
-                                )
-                            )
 
-        save_btn.setGeometry(
-                            QRect(
-                                    QPoint(26, new_rule_btn.geometry().bottom()+26),
-                                    QSize(100, 26)
-                                )
-                            )
+
 
 
     _resize()
