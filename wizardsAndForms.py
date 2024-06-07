@@ -3,9 +3,10 @@ from PySide6.QtWidgets import *
 from configs_ops import read_configs, get_account_details, update_configs
 from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, update_categories, add_account, add_rule, update_rules
+from qt6WidgetExtensions import *
 
 def add_account_wizard(window):
-    account_importing_view = QWidget(window)
+    account_importing_view = extendedBasicWidget(window)
     add_account_layout = QGridLayout(account_importing_view)
     default_margin = 26
 
@@ -256,7 +257,7 @@ def add_account_wizard(window):
     window.add_view(account_importing_view)
 
 def edit_categories_form(window):
-    edit_categories_view = QWidget(window)
+    edit_categories_view = extendedBasicWidget(window)
     layout = QGridLayout(edit_categories_view)
 
     save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
@@ -278,12 +279,12 @@ def edit_categories_form(window):
     all_category_objs = []
     def _remove_category(index):
         # gets all objects associated with selected category
-        category_objs = all_category_objs[index]
+        category_objs = all_category_objs[index-1]
         # sets all objects to hidden
         for obj in category_objs:
             obj.setVisible(False)
         # remove all referances to object, effectively deleting them
-        all_category_objs.pop(index)
+        all_category_objs.pop(index-1)
         # call move form objects to right place after deleting some
         _resize()
 
@@ -366,7 +367,7 @@ def edit_categories_form(window):
     window.add_view(edit_categories_view)
 
 def add_rule_form(window):
-    add_rule_view = QWidget(window)
+    add_rule_view = extendedBasicWidget(window)
     layout = QGridLayout(add_rule_view)
 
     configs = read_configs()
@@ -482,7 +483,7 @@ def add_rule_form(window):
     window.add_view(add_rule_view)
 
 def all_rules_manager(window):
-    all_rules_view = QWidget(window)
+    all_rules_view = extendedBasicWidget(window)
     layout = QGridLayout(all_rules_view)
 
     cancel_btn = QPushButton("Exit", all_rules_view)
@@ -494,7 +495,7 @@ def all_rules_manager(window):
 
     configs = read_configs()
 
-    rule_placement_area = QWidget()
+    rule_placement_area = extendedBasicWidget()
     scroll_obj = QScrollArea(all_rules_view)
     scroll_obj.setWidget(rule_placement_area)
 
@@ -513,29 +514,35 @@ def all_rules_manager(window):
         # call to move form objects to right place after deleting some
         _resize()
 
-    for curr_index, rule_data in enumerate(configs["rules"][2::]):
-        rule_brief = QTextEdit(rule_placement_area)
-        brief_text = "\n".join(
-                                [
-                                    f"Text Match: \"{rule_data[0]}\"",
-                                    f"Lower Limit: {rule_data[1]}",
-                                    f"Upper Limit: {rule_data[2]}",
-                                    f"Category: {rule_data[3]}"
-                                ]
-                            )
-        rule_brief.setText(brief_text)
-        rule_brief.setLineWrapMode(QTextEdit.NoWrap)
-        rule_brief.setEnabled(False)
+    def _create_rule_objs():
+        configs = read_configs()
+        all_rule_objs.clear()
 
-        remove_btn = QPushButton("X", rule_placement_area)
-        remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_rule(index) )
+        for curr_index, rule_data in enumerate(configs["rules"][2::]):
+            rule_brief = QTextEdit(rule_placement_area)
+            brief_text = "\n".join(
+                                    [
+                                        f"Text Match: \"{rule_data[0]}\"",
+                                        f"Lower Limit: {rule_data[1]}",
+                                        f"Upper Limit: {rule_data[2]}",
+                                        f"Category: {rule_data[3]}"
+                                    ]
+                                )
+            rule_brief.setText(brief_text)
+            rule_brief.setLineWrapMode(QTextEdit.NoWrap)
+            rule_brief.setEnabled(False)
 
-        edit_btn = QPushButton("Edit", rule_placement_area)
+            remove_btn = QPushButton("X", rule_placement_area)
+            remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_rule(index) )
 
-        all_rule_objs.append([remove_btn, edit_btn, rule_brief])
+            edit_btn = QPushButton("Edit", rule_placement_area)
+
+            all_rule_objs.append([remove_btn, edit_btn, rule_brief])
+
+    _create_rule_objs()
 
     new_rule_btn = QPushButton("Add New Rule", all_rules_view)
-
+    new_rule_btn.clicked.connect(lambda ctx: add_rule_form(window))
     save_btn = QPushButton("Save", all_rules_view)
 
     def _save():
@@ -609,12 +616,13 @@ def all_rules_manager(window):
 
             prev_geometry = obj[0].geometry().bottomLeft()
 
-
-
-
+    def _refresh():
+        _create_rule_objs()
+        _resize()
 
     _resize()
 
     all_rules_view.resizeEvent = _resize
+    all_rules_view.refresh = _refresh()
 
     window.add_view(all_rules_view)

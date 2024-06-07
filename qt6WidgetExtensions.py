@@ -1,4 +1,5 @@
 from PySide6.QtCore import *
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import *
 from PySide6.QtWidgets import QWidget
 from account_setup import defaults, add_override, add_account
@@ -98,3 +99,10 @@ class ExtendedPogressBar(QProgressBar):
     def setActualValue(self, value):
         self.actual_val = value
         self.refresh_display_value()
+
+class extendedBasicWidget(QWidget):
+    def __init__(self, parent: QWidget | None = None ) -> None:
+        super().__init__(parent)
+
+    def refresh(self):
+        print(self)

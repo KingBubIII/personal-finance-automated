@@ -5,7 +5,7 @@ from account_setup import defaults, add_override, add_account
 from wizardsAndForms import *
 from qt6WidgetExtensions import *
 
-class MainWindow_(QWidget):
+class MainWindow_(extendedBasicWidget):
     def __init__(self, transactions_class):
         super().__init__()
         self.show()
@@ -16,30 +16,30 @@ class MainWindow_(QWidget):
 
         self.transactions_class = transactions_class
 
-        self.layout().widgetRemoved.connect(self._refresh_home_screen)
+        self.layout().widgetRemoved.connect(self._refresh_current_view)
 
         self.init_home_screen()
 
-    def add_view(self, view, index=0):
-        self.layout().insertWidget(index, view)
+    def add_view(self, view):
+        self.layout().addWidget(view)
         self.layout().setCurrentWidget(view)
 
-    def _refresh_home_screen(self):
+    def _refresh_current_view(self):
         self.transactions_class.refresh()
-        self.init_home_screen()
+        self.layout().currentWidget().refresh()
 
     def init_home_screen(self):
         default_margin = 26
 
         # whole window and layout
-        home = QWidget(self)
+        home = extendedBasicWidget(self)
         layout = QGridLayout(home)
 
         # area to select which accounts to view
         account_selection_area = QGroupBox("Account Selection", home)
         stats_area = QGroupBox("Stats", home)
         budget_review_area = QGroupBox("Budget Review", home)
-        checkbox_area = QWidget(account_selection_area)
+        checkbox_area = extendedBasicWidget(account_selection_area)
         checkbox_area_layout = QGridLayout(checkbox_area)
 
         configs = read_configs()
@@ -69,13 +69,15 @@ class MainWindow_(QWidget):
 
         progress_bar_widgets = []
 
-        for category_name, budget in configs["categories"].items():
-            if not category_name == 'Income':
-                curr_bar = ExtendedPogressBar(home, category_name)
-                curr_bar.setActualRange(0, budget)
-                curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
+        def _create_budget_progress_bars():
+            for category_name, budget in read_configs()["categories"].items():
+                if not category_name == 'Income':
+                    curr_bar = ExtendedPogressBar(home, category_name)
+                    curr_bar.setActualRange(0, budget)
+                    curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
 
-                progress_bar_widgets.append(curr_bar)
+                    progress_bar_widgets.append(curr_bar)
+        _create_budget_progress_bars()
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -193,7 +195,14 @@ class MainWindow_(QWidget):
 
         home.resizeEvent = _resize
 
-        self.add_view(home, 0)
+        def _refresh():
+            progress_bar_widgets.clear()
+            _create_budget_progress_bars()
+            _resize(None)
+
+        home.refresh = _refresh
+
+        self.add_view(home)
 
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
@@ -307,7 +316,7 @@ class Transactions():
             table_obj.commit_overrides()
 
     def CSV_review(self, window):
-        CSV_review = QWidget(window)
+        CSV_review = extendedBasicWidget(window)
         CSV_review_layout = QGridLayout(CSV_review)
 
         for account_name, table_obj in self.tables.items():
