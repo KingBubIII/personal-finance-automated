@@ -62,22 +62,29 @@ class MainWindow_(extendedBasicWidget):
         edit_transactions_btn.clicked.connect(lambda ctx: self.transactions_class.CSV_review(self) )
         import_account_btn.clicked.connect(lambda ctx: add_account_wizard(self))
 
-        edit_categories_btn = QPushButton("Edit Categories", home)
+        edit_categories_btn = QPushButton("Edit Categories", budget_review_area)
         edit_categories_btn.clicked.connect(lambda ctx: edit_categories_form(self))
-        edit_rules_btn = QPushButton("Edit Rules", home)
+        edit_rules_btn = QPushButton("Edit Rules", budget_review_area)
         edit_rules_btn.clicked.connect(lambda ctx: all_rules_manager(self))
 
         progress_bar_widgets = []
+        progress_bar_scroll_obj = QScrollArea(budget_review_area)
+        progress_bar_area = extendedBasicWidget(home)
+        progress_bar_area_layout = QGridLayout(progress_bar_area)
+        progress_bar_scroll_obj.setWidget(progress_bar_area)
 
-        def _create_budget_progress_bars():
+        def _create_budget_progress_bars_area():
+            for progress_bar in progress_bar_widgets:
+                progress_bar_area.layout().removeWidget(progress_bar)
+            progress_bar_widgets.clear()
             for category_name, budget in read_configs()["categories"].items():
                 if not category_name == 'Income':
-                    curr_bar = ExtendedPogressBar(home, category_name)
+                    curr_bar = ExtendedPogressBar(progress_bar_area, category_name)
                     curr_bar.setActualRange(0, budget)
                     curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
 
                     progress_bar_widgets.append(curr_bar)
-        _create_budget_progress_bars()
+        _create_budget_progress_bars_area()
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -154,11 +161,8 @@ class MainWindow_(extendedBasicWidget):
 
             edit_categories_btn.setGeometry(
                                             QRect(
-                                                    QPoint(
-                                                            budget_review_area.geometry().left()+26,
-                                                            budget_review_area.geometry().top()+26
-                                                        ),
-                                                    QSize( (budget_review_area.geometry().width()//2)-50, 26 )
+                                                    QPoint(26,26),
+                                                    QSize( budget_review_area.geometry().width()//2-(26*1.5), 26 )
                                             )
                                         )
 
@@ -168,18 +172,35 @@ class MainWindow_(extendedBasicWidget):
                                                         edit_categories_btn.geometry().right()+26,
                                                         edit_categories_btn.geometry().top()
                                                     ),
-                                                QPoint( budget_review_area.geometry().right()-26,
-                                                        edit_categories_btn.geometry().bottom()
-                                                    )
+                                                edit_categories_btn.geometry().size()
                                         )
                                     )
-
+            
+            progress_bar_scroll_obj.setGeometry(
+                                                QRect(
+                                                    QPoint(
+                                                            26,
+                                                            edit_categories_btn.geometry().bottom()+26
+                                                        ),
+                                                    QPoint(
+                                                            budget_review_area.geometry().width()-26,
+                                                            budget_review_area.geometry().height()-26
+                                                        )
+                                                    )
+                                                )
+            progress_bar_area.setGeometry(
+                                            QRect(
+                                                QPoint(0,0),
+                                                QSize(
+                                                        progress_bar_scroll_obj.width()-26, 
+                                                        26*2*len(progress_bar_widgets)-26
+                                                    )
+                                                )
+                                        )
+            
             prev_selector_geometries =  QRect(
-                                            QPoint(
-                                                budget_review_area.geometry().left()+26,
-                                                budget_review_area.geometry().top()+26,
-                                            ),
-                                            QSize(26,26)
+                                            QPoint(0,-26),
+                                            QSize(0,0)
                                         )
             for progress_bar in progress_bar_widgets:
                 progress_bar.setGeometry(
@@ -188,16 +209,17 @@ class MainWindow_(extendedBasicWidget):
                                                 prev_selector_geometries.left(),
                                                 prev_selector_geometries.bottom()+26
                                                 ),
-                                            QSize(budget_review_area.width()-26, 26)
+                                            QSize(budget_review_area.width()-52, 26)
                                         )
                                     )
                 prev_selector_geometries = progress_bar.geometry()
+            
+            
 
         home.resizeEvent = _resize
 
         def _refresh():
-            progress_bar_widgets.clear()
-            _create_budget_progress_bars()
+            _create_budget_progress_bars_area()
             _resize(None)
 
         home.refresh = _refresh

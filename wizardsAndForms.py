@@ -263,7 +263,7 @@ def edit_categories_form(window):
     save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
 
     def _save_and_exit():
-        categories_dict = {}
+        categories_dict = {"Income":10000}
         for objs in all_category_objs:
             categories_dict.update( {objs[0].toPlainText():int(objs[1].toPlainText())} )
 
@@ -531,11 +531,14 @@ def all_rules_manager(window):
             rule_brief.setText(brief_text)
             rule_brief.setLineWrapMode(QTextEdit.NoWrap)
             rule_brief.setEnabled(False)
+            rule_brief.show()
 
             remove_btn = QPushButton("X", rule_placement_area)
+            remove_btn.show()
             remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_rule(index) )
 
             edit_btn = QPushButton("Edit", rule_placement_area)
+            edit_btn.show()
 
             all_rule_objs.append([remove_btn, edit_btn, rule_brief])
 
@@ -556,7 +559,6 @@ def all_rules_manager(window):
         _exit()
 
     save_btn.clicked.connect(_save)
-
 
     def _resize(ctx=None):
         cancel_btn.setGeometry(
@@ -623,6 +625,6 @@ def all_rules_manager(window):
     _resize()
 
     all_rules_view.resizeEvent = _resize
-    all_rules_view.refresh = _refresh()
+    all_rules_view.refresh = _refresh
 
     window.add_view(all_rules_view)
