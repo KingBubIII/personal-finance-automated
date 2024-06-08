@@ -514,6 +514,8 @@ def all_rules_manager(window):
         # call to move form objects to right place after deleting some
         _resize()
 
+        save_btn.setEnabled(True)
+
     def _create_rule_objs():
         configs = read_configs()
         all_rule_objs.clear()
@@ -547,6 +549,7 @@ def all_rules_manager(window):
     new_rule_btn = QPushButton("Add New Rule", all_rules_view)
     new_rule_btn.clicked.connect(lambda ctx: add_rule_form(window))
     save_btn = QPushButton("Save", all_rules_view)
+    save_btn.setEnabled(False)
 
     def _save():
         configs = read_configs()
