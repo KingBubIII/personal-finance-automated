@@ -56,7 +56,6 @@ class MainWindow_(extendedBasicWidget):
             account_check_boxes.append(test)
 
         import_account_btn = QPushButton('Import Account CSV', account_selection_area)
-
         edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
 
         edit_transactions_btn.clicked.connect(lambda ctx: self.transactions_class.CSV_review(self) )
@@ -85,6 +84,25 @@ class MainWindow_(extendedBasicWidget):
 
                     progress_bar_widgets.append(curr_bar)
         _create_budget_progress_bars_area()
+
+
+        starting_balance_label = QLabel("Starting Balance: ", stats_area)
+        starting_balance_val = QDoubleSpinBox(stats_area)
+        starting_balance_val.setDecimals(2)
+        starting_balance_val.setMinimum(0.00)
+        starting_balance_val.setMaximum(9999999999.00)
+        starting_balance_val.setPrefix("$")
+        # starting_balance_val.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        starting_balance_val.setValue(read_configs()['starting_balance'])
+        starting_balance_val.setKeyboardTracking(False)
+
+        @update_configs
+        def _update_starting_balance(configs):
+            print(starting_balance_val.value())
+            configs["starting_balance"] = starting_balance_val.value()
+            return configs
+
+        starting_balance_val.valueChanged.connect(lambda ctx: _update_starting_balance())
 
         def _resize(event):
             account_selection_area.setGeometry( default_margin,
@@ -175,7 +193,7 @@ class MainWindow_(extendedBasicWidget):
                                                 edit_categories_btn.geometry().size()
                                         )
                                     )
-            
+
             progress_bar_scroll_obj.setGeometry(
                                                 QRect(
                                                     QPoint(
@@ -192,12 +210,12 @@ class MainWindow_(extendedBasicWidget):
                                             QRect(
                                                 QPoint(0,0),
                                                 QSize(
-                                                        progress_bar_scroll_obj.width()-26, 
+                                                        progress_bar_scroll_obj.width()-26,
                                                         26*2*len(progress_bar_widgets)-26
                                                     )
                                                 )
                                         )
-            
+
             prev_selector_geometries =  QRect(
                                             QPoint(0,-26),
                                             QSize(0,0)
@@ -213,8 +231,30 @@ class MainWindow_(extendedBasicWidget):
                                         )
                                     )
                 prev_selector_geometries = progress_bar.geometry()
-            
-            
+
+            starting_balance_label.setGeometry(QRect(
+                                                QPoint(
+                                                    default_margin,
+                                                    default_margin
+                                                    ),
+                                                QSize(
+                                                        starting_balance_label.sizeHint().width(),
+                                                        default_margin
+                                                        )
+                                                    )
+                                            )
+
+            starting_balance_val.setGeometry(QRect(
+                                                QPoint(
+                                                    starting_balance_label.geometry().right(),
+                                                    default_margin
+                                                    ),
+                                                QSize(
+                                                        150,
+                                                        default_margin
+                                                        )
+                                                    )
+                                            )
 
         home.resizeEvent = _resize
 
