@@ -1,11 +1,17 @@
 from os import remove
 from json import load, dumps
+from json import JSONDecodeError
 
 def _configs_exist():
     try:
-        open('configs.json','r')
+        config_file = open('configs.json','r')
+        configs = load(config_file)
         return True
     except FileNotFoundError:
+        return False
+    except JSONDecodeError:
+        config_file.close()
+        remove('configs.json')
         return False
 
 def _default_configs():
@@ -17,7 +23,8 @@ def _default_configs():
                 'categories': {
                                 'Misc':0,
                                 'Income':0
-                            }
+                            },
+                'starting_balance':0.0,
             }
 
     if not _configs_exist():
