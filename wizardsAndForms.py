@@ -124,7 +124,7 @@ def add_account_wizard(window):
         add_account(account_name_editor.toPlainText(), file_dialog.selectedFiles()[0], header_indexes)
         account_name_editor.clear()
         headers_selection_table.clear()
-        window._refresh_home_screen()
+        window.refresh()
         return
 
     finish_btn.clicked.connect(_save_new_account)

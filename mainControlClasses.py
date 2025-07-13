@@ -33,6 +33,7 @@ class MainWindow_(extendedBasicWidget):
 
         # whole window and layout
         home = extendedBasicWidget(self)
+        home.setWindowTitle("Home Screen")
         layout = QGridLayout(home)
 
         # area to select which accounts to view
@@ -74,6 +75,7 @@ class MainWindow_(extendedBasicWidget):
 
         def _create_budget_progress_bars_area():
             for progress_bar in progress_bar_widgets:
+                progress_bar.hide()
                 progress_bar_area.layout().removeWidget(progress_bar)
             progress_bar_widgets.clear()
             for category_name, budget in read_configs()["categories"].items():
@@ -231,6 +233,7 @@ class MainWindow_(extendedBasicWidget):
                                         )
                                     )
                 prev_selector_geometries = progress_bar.geometry()
+                progress_bar.show()
 
             starting_balance_label.setGeometry(QRect(
                                                 QPoint(
