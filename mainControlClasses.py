@@ -1,9 +1,12 @@
 from PySide6.QtWidgets import QWidget
+from PySide6.QtCharts import (QBarCategoryAxis, QBarSeries, QBarSet, QChart, QChartView, QValueAxis)
+from PySide6.QtGui import QPainter, QColor
 from configs_ops import read_configs, get_account_details
 from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, add_override, add_account
 from wizardsAndForms import *
 from qt6WidgetExtensions import *
+from math import ceil
 
 class MainWindow_(extendedBasicWidget):
     def __init__(self, transactions_class):
@@ -12,7 +15,8 @@ class MainWindow_(extendedBasicWidget):
 
         self.setLayout(QStackedLayout())
 
-        self.setMinimumSize(960,540)
+        self.setMinimumSize(1450,900)
+        self.showMaximized()
 
         self.transactions_class = transactions_class
 
@@ -97,6 +101,57 @@ class MainWindow_(extendedBasicWidget):
         # starting_balance_val.setButtonSymbols(QAbstractSpinBox.NoButtons)
         starting_balance_val.setValue(read_configs()['starting_balance'])
         starting_balance_val.setKeyboardTracking(False)
+
+        ending_balance_label = QLabel("Ending Balance: ", stats_area)
+        ending_balance_val = QDoubleSpinBox(stats_area)
+        ending_balance_val.setDecimals(2)
+        ending_balance_val.setMinimum(0.00)
+        ending_balance_val.setMaximum(9999999999.00)
+        ending_balance_val.setPrefix("$")
+        ending_balance_val.setEnabled(False)
+
+        planned_expenses = QBarSet("Planned")
+        planned_expenses.append([self.transactions_class.expenses["planned"], self.transactions_class.income["planned"]])
+        planned_expenses.setLabelColor(QColor("black"))
+        actual_expenses = QBarSet("Actual")
+        actual_expenses.append([self.transactions_class.expenses["actual"], self.transactions_class.income["actual"]])
+        actual_expenses.setLabelColor(QColor("black"))
+
+        expense_series = QBarSeries()
+        expense_series.setLabelsVisible(True)
+        expense_series.setLabelsAngle(-45)
+
+        expense_series.append(planned_expenses)
+        expense_series.append(actual_expenses)
+
+        # Set up chart
+        chart = QChart()
+        chart.addSeries(expense_series)
+        chart.setTitle("Planned Vs Actual")
+        chart.setAnimationOptions(QChart.SeriesAnimations)
+
+        categories = ["Expenses", "Income"]
+        axisX = QBarCategoryAxis()
+        axisX.append(categories)
+        axisY = QValueAxis()
+        vals = [
+                    self.transactions_class.expenses["planned"],
+                    self.transactions_class.expenses["actual"],
+                    self.transactions_class.income["planned"],
+                    self.transactions_class.income["actual"]
+                ]
+        print(vals)
+        axisY.setRange(0, (ceil(int(max(vals)) / 1000) * 1000))
+
+        chart.addAxis(axisX, Qt.AlignmentFlag.AlignBottom)
+        chart.addAxis(axisY, Qt.AlignmentFlag.AlignLeft)
+        expense_series.attachAxis(axisX)
+
+        # Chart view
+        expenses_chart = QChartView(chart, stats_area)
+        expenses_chart.setRenderHint(QPainter.Antialiasing)
+
+        expenses_chart.show()
 
         @update_configs
         def _update_starting_balance(configs):
@@ -258,6 +313,41 @@ class MainWindow_(extendedBasicWidget):
                                                         )
                                                     )
                                             )
+            ending_balance_label.setGeometry(QRect(
+                                                QPoint(
+                                                    default_margin,
+                                                    starting_balance_label.geometry().bottom()+default_margin
+                                                    ),
+                                                QSize(
+                                                        ending_balance_label.sizeHint().width(),
+                                                        default_margin
+                                                        )
+                                                    )
+                                            )
+
+            ending_balance_val.setGeometry(QRect(
+                                                QPoint(
+                                                    ending_balance_label.geometry().right(),
+                                                    ending_balance_label.geometry().top(),
+                                                    ),
+                                                QSize(
+                                                        150,
+                                                        default_margin
+                                                        )
+                                                    )
+                                            )
+
+            expenses_chart.setGeometry(QRect(
+                                            QPoint(
+                                                starting_balance_val.geometry().right()+default_margin,
+                                                default_margin
+                                                ),
+                                            QPoint(
+                                                stats_area.geometry().width()-default_margin,
+                                                stats_area.geometry().height()-default_margin
+                                            )
+                                            )
+                                        )
 
         home.resizeEvent = _resize
 
@@ -278,6 +368,8 @@ class Transactions():
         self.accounts = None
         self.categories = None
         self.tables = None
+        self.expenses = {"planned":0, "actual":0}
+        self.income = {"planned":0, "actual":0}
 
         self.refresh()
 
@@ -287,6 +379,7 @@ class Transactions():
         self.accounts = self.curr_configs["accounts"]
         self.categories = self.curr_configs["categories"]
         self.tables = self.get_all_account_tables()
+        self.get_expenses()
 
     def get_category_total(self, category_name):
         try:
@@ -305,6 +398,13 @@ class Transactions():
             print("That category name doesn't exist")
             return None
 
+    def get_expenses(self):
+        expense_categories = self.categories.copy()
+        del expense_categories["Income"]
+        for category in expense_categories:
+            self.expenses["actual"] += self.get_category_total(category)
+            self.expenses["planned"] += self.categories[category]
+
     def auto_category(self, transaction):
         # reads in user defined rules from configs file
         all_rules = read_configs()['rules']
@@ -312,19 +412,23 @@ class Transactions():
         # all_string_matches = [rule[0] for rule in all_rules[1::]]
 
         rule_match = False
-        curr_string_index = 1
+        rule_index = 1
 
-        # repeat till
-        while not rule_match and curr_string_index<=len(all_rules)-1:
+        # repeat until rule match found or out of categories
+        while not rule_match and rule_index<=len(all_rules)-1:
             # curr_string = all_string_matches[curr_string_index]
 
-            if all_rules[curr_string_index][0] in transaction[2]:
-                transaction[1] = float(transaction[1])
-                if transaction[1] > all_rules[curr_string_index][1] and transaction[1] <= all_rules[curr_string_index][2]:
-                    return all_rules[curr_string_index][3]
+            if all_rules[rule_index][0] in transaction[2]:
+                amt = float(transaction[1])
+                if amt > all_rules[rule_index][1] and amt <= all_rules[rule_index][2]:
+                    # checks if transaction is under 'income' category
+                    if rule_index == 1:
+                        # adds income amount to keep track easier
+                        self.income["actual"] += amt
+                    return all_rules[rule_index][3]
+            rule_index+=1
 
-            curr_string_index+=1
-
+        # defaults to 'misc' category
         return all_rules[0][3]
 
     def get_all_account_tables(self):
