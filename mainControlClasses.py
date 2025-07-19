@@ -110,48 +110,14 @@ class MainWindow_(extendedBasicWidget):
         ending_balance_val.setPrefix("$")
         ending_balance_val.setEnabled(False)
 
-        planned_expenses = QBarSet("Planned")
-        planned_expenses.append([self.transactions_class.expenses["planned"], self.transactions_class.income["planned"]])
-        planned_expenses.setLabelColor(QColor("black"))
-        actual_expenses = QBarSet("Actual")
-        actual_expenses.append([self.transactions_class.expenses["actual"], self.transactions_class.income["actual"]])
-        actual_expenses.setLabelColor(QColor("black"))
-
-        expense_series = QBarSeries()
-        expense_series.setLabelsVisible(True)
-        expense_series.setLabelsAngle(-45)
-
-        expense_series.append(planned_expenses)
-        expense_series.append(actual_expenses)
-
-        # Set up chart
-        chart = QChart()
-        chart.addSeries(expense_series)
-        chart.setTitle("Planned Vs Actual")
-        chart.setAnimationOptions(QChart.SeriesAnimations)
-
-        categories = ["Expenses", "Income"]
-        axisX = QBarCategoryAxis()
-        axisX.append(categories)
-        axisY = QValueAxis()
-        vals = [
-                    self.transactions_class.expenses["planned"],
-                    self.transactions_class.expenses["actual"],
-                    self.transactions_class.income["planned"],
-                    self.transactions_class.income["actual"]
-                ]
-        print(vals)
-        axisY.setRange(0, (ceil(int(max(vals)) / 1000) * 1000))
-
-        chart.addAxis(axisX, Qt.AlignmentFlag.AlignBottom)
-        chart.addAxis(axisY, Qt.AlignmentFlag.AlignLeft)
-        expense_series.attachAxis(axisX)
-
+        self.chart_class = CustomChartClass()
         # Chart view
-        expenses_chart = QChartView(chart, stats_area)
+        expenses_chart = QChartView(self.chart_class.chart_widget, stats_area)
         expenses_chart.setRenderHint(QPainter.Antialiasing)
 
         expenses_chart.show()
+
+        self.chart_class.refresh_chart(self.transactions_class.expenses, self.transactions_class.incomes)
 
         @update_configs
         def _update_starting_balance(configs):
@@ -353,6 +319,7 @@ class MainWindow_(extendedBasicWidget):
 
         def _refresh():
             _create_budget_progress_bars_area()
+            self.chart_class.refresh_chart(self.transactions_class.expenses, self.transactions_class.incomes)
             _resize(None)
 
         home.refresh = _refresh
@@ -369,11 +336,14 @@ class Transactions():
         self.categories = None
         self.tables = None
         self.expenses = {"planned":0, "actual":0}
-        self.income = {"planned":0, "actual":0}
+        self.incomes = {"planned":0, "actual":0}
 
         self.refresh()
 
     def refresh(self):
+        self.incomes = {"planned":0, "actual":0}
+        self.expenses = {"planned":0, "actual":0}
+
         self.curr_configs = read_configs()
         self.headers = defaults(headers=True)
         self.accounts = self.curr_configs["accounts"]
@@ -424,7 +394,7 @@ class Transactions():
                     # checks if transaction is under 'income' category
                     if rule_index == 1:
                         # adds income amount to keep track easier
-                        self.income["actual"] += amt
+                        self.incomes["actual"] += amt
                     return all_rules[rule_index][3]
             rule_index+=1
 
