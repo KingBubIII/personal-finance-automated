@@ -1,5 +1,12 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCharts import (QBarCategoryAxis, QBarSeries, QBarSet, QChart, QChartView, QValueAxis)
+from PySide6.QtCharts import (
+    QBarCategoryAxis,
+    QBarSeries,
+    QBarSet,
+    QChart,
+    QChartView,
+    QValueAxis,
+)
 from PySide6.QtGui import QPainter, QColor
 from configs_ops import read_configs, get_account_details
 from csv_ops import get_data_from_account, get_headers
@@ -8,6 +15,7 @@ from wizardsAndForms import *
 from qt6WidgetExtensions import *
 from math import ceil
 
+
 class MainWindow_(extendedBasicWidget):
     def __init__(self, transactions_class):
         super().__init__()
@@ -15,7 +23,7 @@ class MainWindow_(extendedBasicWidget):
 
         self.setLayout(QStackedLayout())
 
-        self.setMinimumSize(1450,900)
+        self.setMinimumSize(1450, 900)
         self.showMaximized()
 
         self.transactions_class = transactions_class
@@ -57,13 +65,17 @@ class MainWindow_(extendedBasicWidget):
 
         for count, account in enumerate(configs["accounts"]):
             test = QCheckBox(account, checkbox_area)
-            test.setGeometry(default_margin, default_margin*count, 150, default_margin)
+            test.setGeometry(
+                default_margin, default_margin * count, 150, default_margin
+            )
             account_check_boxes.append(test)
 
-        import_account_btn = QPushButton('Import Account CSV', account_selection_area)
-        edit_transactions_btn = QPushButton('Edit Transactions', account_selection_area)
+        import_account_btn = QPushButton("Import Account CSV", account_selection_area)
+        edit_transactions_btn = QPushButton("Edit Transactions", account_selection_area)
 
-        edit_transactions_btn.clicked.connect(lambda ctx: self.transactions_class.CSV_review(self) )
+        edit_transactions_btn.clicked.connect(
+            lambda ctx: self.transactions_class.CSV_review(self)
+        )
         import_account_btn.clicked.connect(lambda ctx: add_account_wizard(self))
 
         edit_categories_btn = QPushButton("Edit Categories", budget_review_area)
@@ -83,14 +95,16 @@ class MainWindow_(extendedBasicWidget):
                 progress_bar_area.layout().removeWidget(progress_bar)
             progress_bar_widgets.clear()
             for category_name, budget in read_configs()["categories"].items():
-                if not category_name == 'Income':
+                if not category_name == "Income":
                     curr_bar = ExtendedPogressBar(progress_bar_area, category_name)
                     curr_bar.setActualRange(0, budget)
-                    curr_bar.setActualValue(self.transactions_class.get_category_total(category_name))
+                    curr_bar.setActualValue(
+                        self.transactions_class.get_category_total(category_name)
+                    )
 
                     progress_bar_widgets.append(curr_bar)
-        _create_budget_progress_bars_area()
 
+        _create_budget_progress_bars_area()
 
         starting_balance_label = QLabel("Starting Balance: ", stats_area)
         starting_balance_val = QDoubleSpinBox(stats_area)
@@ -99,7 +113,7 @@ class MainWindow_(extendedBasicWidget):
         starting_balance_val.setMaximum(9999999999.00)
         starting_balance_val.setPrefix("$")
         # starting_balance_val.setButtonSymbols(QAbstractSpinBox.NoButtons)
-        starting_balance_val.setValue(read_configs()['starting_balance'])
+        starting_balance_val.setValue(read_configs()["starting_balance"])
         starting_balance_val.setKeyboardTracking(False)
 
         ending_balance_label = QLabel("Ending Balance: ", stats_area)
@@ -117,7 +131,9 @@ class MainWindow_(extendedBasicWidget):
 
         expenses_chart.show()
 
-        self.chart_class.refresh_chart(self.transactions_class.expenses, self.transactions_class.incomes)
+        self.chart_class.refresh_chart(
+            self.transactions_class.expenses, self.transactions_class.incomes
+        )
 
         @update_configs
         def _update_starting_balance(configs):
@@ -125,224 +141,207 @@ class MainWindow_(extendedBasicWidget):
             configs["starting_balance"] = starting_balance_val.value()
             return configs
 
-        starting_balance_val.valueChanged.connect(lambda ctx: _update_starting_balance())
+        starting_balance_val.valueChanged.connect(
+            lambda ctx: _update_starting_balance()
+        )
 
         def _resize(event):
-            account_selection_area.setGeometry( default_margin,
-                                                default_margin,
-                                                home.geometry().width()//2,
-                                                home.geometry().height()//3)
+            account_selection_area.setGeometry(
+                default_margin,
+                default_margin,
+                home.geometry().width() // 2,
+                home.geometry().height() // 3,
+            )
 
-            stats_area.setGeometry(QRect(
-                                        QPoint(
-                                                default_margin,
-                                                account_selection_area.geometry().bottom()+default_margin
-                                                ),
-                                        QPoint(
-                                                account_selection_area.geometry().right(),
-                                                home.geometry().bottom()-default_margin
-                                                )
-                                        )
-                                    )
+            stats_area.setGeometry(
+                QRect(
+                    QPoint(
+                        default_margin,
+                        account_selection_area.geometry().bottom() + default_margin,
+                    ),
+                    QPoint(
+                        account_selection_area.geometry().right(),
+                        home.geometry().bottom() - default_margin,
+                    ),
+                )
+            )
 
-            budget_review_area.setGeometry(QRect(
-                                        QPoint(
-                                                account_selection_area.geometry().right()+default_margin,
-                                                default_margin
-                                                ),
-                                        QPoint(
-                                                home.geometry().right()-default_margin,
-                                                home.geometry().bottom()-default_margin
-                                                )
-                                        )
-                                    )
+            budget_review_area.setGeometry(
+                QRect(
+                    QPoint(
+                        account_selection_area.geometry().right() + default_margin,
+                        default_margin,
+                    ),
+                    QPoint(
+                        home.geometry().right() - default_margin,
+                        home.geometry().bottom() - default_margin,
+                    ),
+                )
+            )
 
-            import_account_btn.setGeometry(QRect(
-                                            QPoint(
-                                                default_margin,
-                                                default_margin
-                                                ),
-                                            QSize(
-                                                    150,
-                                                    default_margin
-                                                    )
-                                                )
-                                            )
+            import_account_btn.setGeometry(
+                QRect(
+                    QPoint(default_margin, default_margin), QSize(150, default_margin)
+                )
+            )
 
-            edit_transactions_btn.setGeometry(QRect(
-                                                QPoint(
-                                                    import_account_btn.geometry().right()+default_margin,
-                                                    default_margin
-                                                    ),
-                                                QSize(
-                                                        150,
-                                                        default_margin
-                                                        )
-                                                    )
-                                            )
+            edit_transactions_btn.setGeometry(
+                QRect(
+                    QPoint(
+                        import_account_btn.geometry().right() + default_margin,
+                        default_margin,
+                    ),
+                    QSize(150, default_margin),
+                )
+            )
 
-            scroll_obj.setGeometry(QRect(
-                                    QPoint(
-                                        default_margin,
-                                        import_account_btn.geometry().bottom() + default_margin
-                                        ),
-                                QPoint(
-                                        account_selection_area.geometry().width()-default_margin,
-                                        account_selection_area.geometry().height()-default_margin
-                                        )
-                                    )
-                                )
+            scroll_obj.setGeometry(
+                QRect(
+                    QPoint(
+                        default_margin,
+                        import_account_btn.geometry().bottom() + default_margin,
+                    ),
+                    QPoint(
+                        account_selection_area.geometry().width() - default_margin,
+                        account_selection_area.geometry().height() - default_margin,
+                    ),
+                )
+            )
 
             checkbox_area.setGeometry(
-                                        default_margin,
-                                        default_margin,
-                                        scroll_obj.geometry().width()-default_margin,
-                                        default_margin*len(account_check_boxes)
-                                    )
+                default_margin,
+                default_margin,
+                scroll_obj.geometry().width() - default_margin,
+                default_margin * len(account_check_boxes),
+            )
 
             edit_categories_btn.setGeometry(
-                                            QRect(
-                                                    QPoint(26,26),
-                                                    QSize( budget_review_area.geometry().width()//2-(26*1.5), 26 )
-                                            )
-                                        )
+                QRect(
+                    QPoint(26, 26),
+                    QSize(budget_review_area.geometry().width() // 2 - (26 * 1.5), 26),
+                )
+            )
 
             edit_rules_btn.setGeometry(
-                                        QRect(
-                                                QPoint(
-                                                        edit_categories_btn.geometry().right()+26,
-                                                        edit_categories_btn.geometry().top()
-                                                    ),
-                                                edit_categories_btn.geometry().size()
-                                        )
-                                    )
+                QRect(
+                    QPoint(
+                        edit_categories_btn.geometry().right() + 26,
+                        edit_categories_btn.geometry().top(),
+                    ),
+                    edit_categories_btn.geometry().size(),
+                )
+            )
 
             progress_bar_scroll_obj.setGeometry(
-                                                QRect(
-                                                    QPoint(
-                                                            26,
-                                                            edit_categories_btn.geometry().bottom()+26
-                                                        ),
-                                                    QPoint(
-                                                            budget_review_area.geometry().width()-26,
-                                                            budget_review_area.geometry().height()-26
-                                                        )
-                                                    )
-                                                )
+                QRect(
+                    QPoint(26, edit_categories_btn.geometry().bottom() + 26),
+                    QPoint(
+                        budget_review_area.geometry().width() - 26,
+                        budget_review_area.geometry().height() - 26,
+                    ),
+                )
+            )
             progress_bar_area.setGeometry(
-                                            QRect(
-                                                QPoint(0,0),
-                                                QSize(
-                                                        progress_bar_scroll_obj.width()-26,
-                                                        26*2*len(progress_bar_widgets)-26
-                                                    )
-                                                )
-                                        )
+                QRect(
+                    QPoint(0, 0),
+                    QSize(
+                        progress_bar_scroll_obj.width() - 26,
+                        26 * 2 * len(progress_bar_widgets) - 26,
+                    ),
+                )
+            )
 
-            prev_selector_geometries =  QRect(
-                                            QPoint(0,-26),
-                                            QSize(0,0)
-                                        )
+            prev_selector_geometries = QRect(QPoint(0, -26), QSize(0, 0))
             for progress_bar in progress_bar_widgets:
                 progress_bar.setGeometry(
-                                        QRect(
-                                            QPoint(
-                                                prev_selector_geometries.left(),
-                                                prev_selector_geometries.bottom()+26
-                                                ),
-                                            QSize(budget_review_area.width()-52, 26)
-                                        )
-                                    )
+                    QRect(
+                        QPoint(
+                            prev_selector_geometries.left(),
+                            prev_selector_geometries.bottom() + 26,
+                        ),
+                        QSize(budget_review_area.width() - 52, 26),
+                    )
+                )
                 prev_selector_geometries = progress_bar.geometry()
                 progress_bar.show()
 
-            starting_balance_label.setGeometry(QRect(
-                                                QPoint(
-                                                    default_margin,
-                                                    default_margin
-                                                    ),
-                                                QSize(
-                                                        starting_balance_label.sizeHint().width(),
-                                                        default_margin
-                                                        )
-                                                    )
-                                            )
+            starting_balance_label.setGeometry(
+                QRect(
+                    QPoint(default_margin, default_margin),
+                    QSize(starting_balance_label.sizeHint().width(), default_margin),
+                )
+            )
 
-            starting_balance_val.setGeometry(QRect(
-                                                QPoint(
-                                                    starting_balance_label.geometry().right(),
-                                                    default_margin
-                                                    ),
-                                                QSize(
-                                                        150,
-                                                        default_margin
-                                                        )
-                                                    )
-                                            )
-            ending_balance_label.setGeometry(QRect(
-                                                QPoint(
-                                                    default_margin,
-                                                    starting_balance_label.geometry().bottom()+default_margin
-                                                    ),
-                                                QSize(
-                                                        ending_balance_label.sizeHint().width(),
-                                                        default_margin
-                                                        )
-                                                    )
-                                            )
+            starting_balance_val.setGeometry(
+                QRect(
+                    QPoint(starting_balance_label.geometry().right(), default_margin),
+                    QSize(150, default_margin),
+                )
+            )
+            ending_balance_label.setGeometry(
+                QRect(
+                    QPoint(
+                        default_margin,
+                        starting_balance_label.geometry().bottom() + default_margin,
+                    ),
+                    QSize(ending_balance_label.sizeHint().width(), default_margin),
+                )
+            )
 
-            ending_balance_val.setGeometry(QRect(
-                                                QPoint(
-                                                    ending_balance_label.geometry().right(),
-                                                    ending_balance_label.geometry().top(),
-                                                    ),
-                                                QSize(
-                                                        150,
-                                                        default_margin
-                                                        )
-                                                    )
-                                            )
+            ending_balance_val.setGeometry(
+                QRect(
+                    QPoint(
+                        ending_balance_label.geometry().right(),
+                        ending_balance_label.geometry().top(),
+                    ),
+                    QSize(150, default_margin),
+                )
+            )
 
-            expenses_chart.setGeometry(QRect(
-                                            QPoint(
-                                                starting_balance_val.geometry().right()+default_margin,
-                                                default_margin
-                                                ),
-                                            QPoint(
-                                                stats_area.geometry().width()-default_margin,
-                                                stats_area.geometry().height()-default_margin
-                                            )
-                                            )
-                                        )
+            expenses_chart.setGeometry(
+                QRect(
+                    QPoint(
+                        starting_balance_val.geometry().right() + default_margin,
+                        default_margin,
+                    ),
+                    QPoint(
+                        stats_area.geometry().width() - default_margin,
+                        stats_area.geometry().height() - default_margin,
+                    ),
+                )
+            )
 
         home.resizeEvent = _resize
 
         def _refresh():
             _create_budget_progress_bars_area()
-            self.chart_class.refresh_chart(self.transactions_class.expenses, self.transactions_class.incomes)
+            self.chart_class.refresh_chart(
+                self.transactions_class.expenses, self.transactions_class.incomes
+            )
             _resize(None)
 
         home.refresh = _refresh
 
         self.add_view(home)
 
+
 # reads CSV file paths from configs file
 # reads all CSV files individually then combines them
-class Transactions():
+class Transactions:
     def __init__(self):
         self.curr_configs = None
         self.headers = None
         self.accounts = None
         self.categories = None
         self.tables = None
-        self.expenses = {"planned":0, "actual":0}
-        self.incomes = {"planned":0, "actual":0}
+        self.expenses = {"planned": 0, "actual": 0}
+        self.incomes = {"planned": 0, "actual": 0}
 
         self.refresh()
 
     def refresh(self):
-        self.incomes = {"planned":0, "actual":0}
-        self.expenses = {"planned":0, "actual":0}
+        self.incomes = {"planned": 0, "actual": 0}
+        self.expenses = {"planned": 0, "actual": 0}
 
         self.curr_configs = read_configs()
         self.headers = defaults(headers=True)
@@ -358,11 +357,15 @@ class Transactions():
             actual_amonut = 0
             for table_name, table in self.tables.items():
                 for row_index in range(table.rowCount()):
-                    transaction_category = table.item(row_index, table.columnCount()-1).text()
+                    transaction_category = table.item(
+                        row_index, table.columnCount() - 1
+                    ).text()
                     if transaction_category == category_name:
-                        actual_amonut += float(table.item(row_index, self.headers.index("amount")).text())
+                        actual_amonut += float(
+                            table.item(row_index, self.headers.index("amount")).text()
+                        )
 
-            return round(abs(actual_amonut),2)
+            return round(abs(actual_amonut), 2)
 
         except KeyError as e:
             print("That category name doesn't exist")
@@ -377,7 +380,7 @@ class Transactions():
 
     def auto_category(self, transaction):
         # reads in user defined rules from configs file
-        all_rules = read_configs()['rules']
+        all_rules = read_configs()["rules"]
         # gets all the string matching rules except for the default 'Misc' category's string match ''
         # all_string_matches = [rule[0] for rule in all_rules[1::]]
 
@@ -385,7 +388,7 @@ class Transactions():
         rule_index = 1
 
         # repeat until rule match found or out of categories
-        while not rule_match and rule_index<=len(all_rules)-1:
+        while not rule_match and rule_index <= len(all_rules) - 1:
             # curr_string = all_string_matches[curr_string_index]
 
             if all_rules[rule_index][0] in transaction[2]:
@@ -396,7 +399,7 @@ class Transactions():
                         # adds income amount to keep track easier
                         self.incomes["actual"] += amt
                     return all_rules[rule_index][3]
-            rule_index+=1
+            rule_index += 1
 
         # defaults to 'misc' category
         return all_rules[0][3]
@@ -409,17 +412,25 @@ class Transactions():
         # loops through all accounts found in confgis file
         for account_name, account_details in configs["accounts"].items():
             # creates blank Qt6 table object with enough columns for each header
-            table_obj = ExtendedTableWidget(0, len(self.headers)+1)
+            table_obj = ExtendedTableWidget(0, len(self.headers) + 1)
             table_obj.setObjectName(account_name)
 
             # sets headers on table object
-            table_obj.setHorizontalHeaderLabels([*self.headers, 'Categories'])
-            table_obj.setItemDelegateForColumn(len(self.headers), ComboBoxDelegate(self.categories))
+            table_obj.setHorizontalHeaderLabels([*self.headers, "Categories"])
+            table_obj.setItemDelegateForColumn(
+                len(self.headers), ComboBoxDelegate(self.categories)
+            )
             table_obj.setEditTriggers(ExtendedTableWidget.EditTrigger.AllEditTriggers)
 
             # read in account CSV file data
             # pass csv file path and only relevant header indexes
-            data = get_data_from_account(account_details['csv_path'],  [account_details['columnIndexes'][temp_header] for temp_header in self.headers] )
+            data = get_data_from_account(
+                account_details["csv_path"],
+                [
+                    account_details["columnIndexes"][temp_header]
+                    for temp_header in self.headers
+                ],
+            )
             # iterate through each row of CSV data
             for row_index in range(len(data)):
                 # add a row to the table object and combined table
@@ -427,15 +438,25 @@ class Transactions():
                 # iterate for each column
                 for col_index in range(len(self.headers)):
                     # converts CSV data into a table item object for current table and combined table
-                    table_obj.setItem(row_index, col_index, QTableWidgetItem(data[row_index][col_index]))
+                    table_obj.setItem(
+                        row_index,
+                        col_index,
+                        QTableWidgetItem(data[row_index][col_index]),
+                    )
 
                 # the final column of the row is auto catorgized based on previously made rules in the configs
                 # default option is "Misc"
-                table_obj.setItem(row_index, len(self.headers), QTableWidgetItem(self.auto_category(data[row_index])))
+                table_obj.setItem(
+                    row_index,
+                    len(self.headers),
+                    QTableWidgetItem(self.auto_category(data[row_index])),
+                )
 
             # loads all overrides user previously made
             for row, category in configs["accounts"][account_name]["overrides"].items():
-                table_obj.setItem(int(row), len(self.headers), QTableWidgetItem(category))
+                table_obj.setItem(
+                    int(row), len(self.headers), QTableWidgetItem(category)
+                )
 
             # add the current table to the whole tables dictionary
             tables[account_name] = table_obj
@@ -465,7 +486,9 @@ class Transactions():
         account_selector = QComboBox()
         account_selector.addItems(self.tables.keys())
         # show account table when the drop down menu choice is changed
-        account_selector.currentTextChanged.connect( lambda text: self.tables[text].raise_() )
+        account_selector.currentTextChanged.connect(
+            lambda text: self.tables[text].raise_()
+        )
         # on init show the first table in the list
         self.tables[account_selector.itemText(0)].raise_()
 
@@ -473,10 +496,10 @@ class Transactions():
 
         # a button to save all manual overrides and close the window
         return_btn = QPushButton("Save and Exit")
+
         def _save_and_exit():
             self.commit_all_overrides()
             window.layout().removeWidget(CSV_review)
-
 
         return_btn.clicked.connect(_save_and_exit)
 

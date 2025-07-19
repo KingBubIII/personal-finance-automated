@@ -1,11 +1,26 @@
 from PySide6.QtCore import Qt, QPoint, QRect
-from PySide6.QtWidgets import QWidget, QStyledItemDelegate, QComboBox, QTableWidget, QProgressBar, QLabel
-from PySide6.QtCharts import QBarSet, QBarSeries, QChart, QBarCategoryAxis, QValueAxis, QChartView
+from PySide6.QtWidgets import (
+    QWidget,
+    QStyledItemDelegate,
+    QComboBox,
+    QTableWidget,
+    QProgressBar,
+    QLabel,
+)
+from PySide6.QtCharts import (
+    QBarSet,
+    QBarSeries,
+    QChart,
+    QBarCategoryAxis,
+    QValueAxis,
+    QChartView,
+)
 from PySide6.QtGui import QColor
 from account_setup import defaults, add_override, add_account
 from math import ceil
 
-class CustomChartClass():
+
+class CustomChartClass:
     def __init__(self):
         self.planned = QBarSet("Planned")
         self.actual = QBarSet("Actual")
@@ -39,18 +54,17 @@ class CustomChartClass():
     def refresh_chart(self, expenses: dict, incomes: dict):
         self.planned.remove(0, self.planned.count())
         self.actual.remove(0, self.actual.count())
-        
+
         self.planned.append([expenses["planned"], incomes["planned"]])
         self.actual.append([expenses["actual"], incomes["actual"]])
 
         expenses_and_incomes = [
-                    expenses["planned"],
-                    expenses["actual"],
-                    incomes["planned"],
-                    incomes["actual"]
-                ]
+            expenses["planned"],
+            expenses["actual"],
+            incomes["planned"],
+            incomes["actual"],
+        ]
         self.axisY.setRange(0, (ceil(int(max(expenses_and_incomes)) / 1000) * 1000))
-
 
 
 class ComboBoxDelegate(QStyledItemDelegate):
@@ -64,6 +78,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
         comboBox.addItems(self.dropdown_options)
         return comboBox
 
+
 class ExtendedTableWidget(QTableWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,7 +90,9 @@ class ExtendedTableWidget(QTableWidget):
     def stage_override(self):
         # checks to see if overrides are allowed
         if self.allow_overrides:
-            self.uncommited_overrides.update({self.currentRow(): self.currentItem().text()})
+            self.uncommited_overrides.update(
+                {self.currentRow(): self.currentItem().text()}
+            )
 
     # one by one adds the manual override to the proper account in the configs file
     def commit_overrides(self):
@@ -85,6 +102,7 @@ class ExtendedTableWidget(QTableWidget):
 
         # empties out all overrides
         self.uncommited_overrides = {}
+
 
 class ExtendedPogressBar(QProgressBar):
     def __init__(self, parent: QWidget | None, category_name) -> None:
@@ -109,27 +127,31 @@ class ExtendedPogressBar(QProgressBar):
         super().resizeEvent(event)
 
         # update the text shown
-        self.bar_description_text.setText(f"{self.category_name}: ${self.actual_val}/${self.actual_max}")
+        self.bar_description_text.setText(
+            f"{self.category_name}: ${self.actual_val}/${self.actual_max}"
+        )
         # update recommended size
         self.bar_description_text.setGeometry(
-                                                QRect(
-                                                        QPoint(self.bar_description_text.geometry().topLeft()),
-                                                        self.bar_description_text.sizeHint()
-                                                    )
-                                            )
+            QRect(
+                QPoint(self.bar_description_text.geometry().topLeft()),
+                self.bar_description_text.sizeHint(),
+            )
+        )
         # move text to center over the progress bar
         self.bar_description_text.move(
-                                        (self.width()//2)-(self.bar_description_text.width()//2),
-                                        (self.height()//2)-(self.bar_description_text.height()//2)
-                                    )
+            (self.width() // 2) - (self.bar_description_text.width() // 2),
+            (self.height() // 2) - (self.bar_description_text.height() // 2),
+        )
 
     def refresh_display_value(self):
         if self.actual_max == 0:
-            percentage = self.actual_val/1*100
+            percentage = self.actual_val / 1 * 100
         else:
-            percentage = self.actual_val/self.actual_max*100
-        self.setValue( min(percentage, 100) )
-        self.bar_description_text.setText(f"{self.category_name}: ${self.actual_val}/${self.actual_max}")
+            percentage = self.actual_val / self.actual_max * 100
+        self.setValue(min(percentage, 100))
+        self.bar_description_text.setText(
+            f"{self.category_name}: ${self.actual_val}/${self.actual_max}"
+        )
         self.setFormat("")
 
     def setActualMax(self, value):
@@ -149,8 +171,9 @@ class ExtendedPogressBar(QProgressBar):
         self.actual_val = value
         self.refresh_display_value()
 
+
 class extendedBasicWidget(QWidget):
-    def __init__(self, parent: QWidget | None = None ) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
     def refresh(self):

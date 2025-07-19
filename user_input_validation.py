@@ -6,6 +6,7 @@ def valid_YN_response(input):
     else:
         return False
 
+
 def user_confirmed(input):
     if input in ["YES", "Y", "yes", "y"]:
         return True

@@ -2,8 +2,15 @@ from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from configs_ops import read_configs, get_account_details, update_configs
 from csv_ops import get_data_from_account, get_headers
-from account_setup import defaults, update_categories, add_account, add_rule, update_rules
+from account_setup import (
+    defaults,
+    update_categories,
+    add_account,
+    add_rule,
+    update_rules,
+)
 from qt6WidgetExtensions import *
+
 
 def add_account_wizard(window):
     account_importing_view = extendedBasicWidget(window)
@@ -27,10 +34,10 @@ def add_account_wizard(window):
 
     next_header_btn = QPushButton("Next", account_importing_view)
     prev_header_btn = QPushButton("Previous", account_importing_view)
-    directions_box = QLabel("Import a CSV file",account_importing_view)
+    directions_box = QLabel("Import a CSV file", account_importing_view)
     finish_btn = QPushButton("Finish", account_importing_view)
 
-    header_indexes = {header:-1 for header in headers}
+    header_indexes = {header: -1 for header in headers}
 
     directions_box.setAlignment(Qt.AlignCenter)
     prev_header_btn.setDisabled(True)
@@ -61,7 +68,7 @@ def add_account_wizard(window):
         prev_header_btn.setDisabled(False)
         next_header_btn.setDisabled(False)
 
-        if header_selected_id >= len(headers_selectors.buttons())-1:
+        if header_selected_id >= len(headers_selectors.buttons()) - 1:
             next_header_btn.setDisabled(True)
 
         if header_selected_id == 0:
@@ -82,10 +89,10 @@ def add_account_wizard(window):
         header_selected_id = headers_selectors.id(selected_header_btn)
 
         if next:
-            headers_selectors.button(header_selected_id+1).click()
+            headers_selectors.button(header_selected_id + 1).click()
 
         if prev:
-            headers_selectors.button(header_selected_id-1).click()
+            headers_selectors.button(header_selected_id - 1).click()
 
         _btn_disabler()
 
@@ -115,13 +122,19 @@ def add_account_wizard(window):
                 print("You have not selected columns for all nessessary headers")
                 return
         if get_account_details(account_name_editor.toPlainText()):
-            print("An account with that name already exists, give this account a new name")
+            print(
+                "An account with that name already exists, give this account a new name"
+            )
             return
         if account_name_editor.toPlainText() == "":
             print("Give your acconut a name")
             return
 
-        add_account(account_name_editor.toPlainText(), file_dialog.selectedFiles()[0], header_indexes)
+        add_account(
+            account_name_editor.toPlainText(),
+            file_dialog.selectedFiles()[0],
+            header_indexes,
+        )
         account_name_editor.clear()
         headers_selection_table.clear()
         window.refresh()
@@ -131,130 +144,95 @@ def add_account_wizard(window):
 
     def _resize(ctx=None):
         close_btn.setGeometry(
-                                QRect(
-                                        QPoint( default_margin,
-                                                default_margin
-                                                ),
-                                        QSize(  100,
-                                                default_margin
-                                            )
-                                    )
-                            )
+            QRect(QPoint(default_margin, default_margin), QSize(100, default_margin))
+        )
         import_CSV_btn.setGeometry(
-                                    QRect(
-                                            QPoint(
-                                                    default_margin,
-                                                    close_btn.geometry().bottom()+100
-
-                                            ),
-                                            QSize(
-                                                100,
-                                                default_margin
-                                            )
-
-                                        ),
-                                )
+            QRect(
+                QPoint(default_margin, close_btn.geometry().bottom() + 100),
+                QSize(100, default_margin),
+            ),
+        )
         account_name_label.setGeometry(
-                                    QRect(
-                                            QPoint(
-                                                    default_margin,
-                                                    import_CSV_btn.geometry().bottom()+default_margin
-
-                                            ),
-                                            QSize(
-                                                100,
-                                                default_margin
-                                            )
-
-                                        ),
-                                )
+            QRect(
+                QPoint(
+                    default_margin, import_CSV_btn.geometry().bottom() + default_margin
+                ),
+                QSize(100, default_margin),
+            ),
+        )
         account_name_editor.setGeometry(
-                                    QRect(
-                                            QPoint(
-                                                    account_name_label.geometry().right(),
-                                                    import_CSV_btn.geometry().bottom()+default_margin
-                                            ),
-                                            QSize(
-                                                300,
-                                                default_margin
-                                            )
-
-                                        ),
-                                )
+            QRect(
+                QPoint(
+                    account_name_label.geometry().right(),
+                    import_CSV_btn.geometry().bottom() + default_margin,
+                ),
+                QSize(300, default_margin),
+            ),
+        )
         headers_selection_table.setGeometry(
-                                        QRect(
-                                            QPoint(
-                                                    default_margin,
-                                                    account_name_editor.geometry().bottom()+default_margin
-                                                ),
-                                            QSize(
-                                                window.geometry().width()//2,
-                                                default_margin*3
-                                            )
-                                        )
-                                    )
+            QRect(
+                QPoint(
+                    default_margin,
+                    account_name_editor.geometry().bottom() + default_margin,
+                ),
+                QSize(window.geometry().width() // 2, default_margin * 3),
+            )
+        )
 
-        prev_selector_geometry = QRect(0,0,0,0)
+        prev_selector_geometry = QRect(0, 0, 0, 0)
         for index, selector in enumerate(headers_selectors.buttons()):
             selector.setGeometry(
-                                    QRect(
-                                        QPoint(
-                                                prev_selector_geometry.right()+default_margin,
-                                                headers_selection_table.geometry().bottom()+default_margin
-                                            ),
-                                        QSize(
-                                            selector.sizeHint().width(),
-                                            default_margin
-                                        )
-                                    )
-                                )
+                QRect(
+                    QPoint(
+                        prev_selector_geometry.right() + default_margin,
+                        headers_selection_table.geometry().bottom() + default_margin,
+                    ),
+                    QSize(selector.sizeHint().width(), default_margin),
+                )
+            )
             prev_selector_geometry = selector.geometry()
         prev_header_btn.setGeometry(
-                                        QRect(
-                                            QPoint( default_margin,
-                                                    headers_selectors.buttons()[0].geometry().bottom()+default_margin
-                                                    ),
-                                            QSize(
-                                                headers_selection_table.geometry().width()//3,
-                                                default_margin
-                                            )
-                                        )
-                                    )
+            QRect(
+                QPoint(
+                    default_margin,
+                    headers_selectors.buttons()[0].geometry().bottom() + default_margin,
+                ),
+                QSize(headers_selection_table.geometry().width() // 3, default_margin),
+            )
+        )
         directions_box.setGeometry(
-                                    QRect(
-                                        QPoint( prev_header_btn.geometry().right(),
-                                                headers_selectors.buttons()[0].geometry().bottom()+default_margin
-                                                ),
-                                        QSize(
-                                            headers_selection_table.geometry().width()//3,
-                                            default_margin
-                                        )
-                                    )
-                                )
+            QRect(
+                QPoint(
+                    prev_header_btn.geometry().right(),
+                    headers_selectors.buttons()[0].geometry().bottom() + default_margin,
+                ),
+                QSize(headers_selection_table.geometry().width() // 3, default_margin),
+            )
+        )
         next_header_btn.setGeometry(
-                                    QRect(
-                                        QPoint( directions_box.geometry().right(),
-                                                headers_selectors.buttons()[0].geometry().bottom()+default_margin
-                                                ),
-                                        QSize(
-                                            headers_selection_table.geometry().width()//3,
-                                            default_margin
-                                        )
-                                    )
-                                )
+            QRect(
+                QPoint(
+                    directions_box.geometry().right(),
+                    headers_selectors.buttons()[0].geometry().bottom() + default_margin,
+                ),
+                QSize(headers_selection_table.geometry().width() // 3, default_margin),
+            )
+        )
         finish_btn.setGeometry(
-                                    QRect(
-                                        QPoint( directions_box.geometry().left(),
-                                                directions_box.geometry().bottom()+default_margin
-                                                ),
-                                        directions_box.geometry().size()
-                                    )
-                                )
+            QRect(
+                QPoint(
+                    directions_box.geometry().left(),
+                    directions_box.geometry().bottom() + default_margin,
+                ),
+                directions_box.geometry().size(),
+            )
+        )
 
     # _resize()
     account_importing_view.resizeEvent = _resize
 
     window.add_view(account_importing_view)
+
 
 def edit_categories_form(window):
     edit_categories_view = extendedBasicWidget(window)
@@ -263,43 +241,55 @@ def edit_categories_form(window):
     save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
 
     def _save_and_exit():
-        categories_dict = {"Income":10000}
+        categories_dict = {"Income": 10000}
         for objs in all_category_objs:
-            categories_dict.update( {objs[0].toPlainText():int(objs[1].toPlainText())} )
+            categories_dict.update({objs[0].toPlainText(): int(objs[1].toPlainText())})
 
         update_categories(categories_dict)
 
         window.layout().removeWidget(edit_categories_view)
 
         return configs
+
     save_exit_btn.clicked.connect(lambda ctx: _save_and_exit())
 
     configs = read_configs()
 
     all_category_objs = []
+
     def _remove_category(index):
         # gets all objects associated with selected category
-        category_objs = all_category_objs[index-1]
+        category_objs = all_category_objs[index - 1]
         # sets all objects to hidden
         for obj in category_objs:
             obj.setVisible(False)
         # remove all referances to object, effectively deleting them
-        all_category_objs.pop(index-1)
+        all_category_objs.pop(index - 1)
         # call move form objects to right place after deleting some
         _resize()
 
-    for curr_index, (category_name, category_budget) in enumerate(configs["categories"].items()):
+    for curr_index, (category_name, category_budget) in enumerate(
+        configs["categories"].items()
+    ):
         if not category_name == "Income":
             curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
             if category_name == "Misc":
                 curr_category_name_obj.setDisabled(True)
 
-            curr_category_budget_obj = QTextEdit(str(category_budget), edit_categories_view)
+            curr_category_budget_obj = QTextEdit(
+                str(category_budget), edit_categories_view
+            )
 
             curr_category_remove_btn = QPushButton("X", edit_categories_view)
-            curr_category_remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_category(index))
+            curr_category_remove_btn.clicked.connect(
+                lambda ctx=None, index=curr_index: _remove_category(index)
+            )
 
-            all_curr_category_objs = [curr_category_name_obj, curr_category_budget_obj, curr_category_remove_btn]
+            all_curr_category_objs = [
+                curr_category_name_obj,
+                curr_category_budget_obj,
+                curr_category_remove_btn,
+            ]
 
             all_category_objs.append(all_curr_category_objs)
 
@@ -313,10 +303,15 @@ def edit_categories_form(window):
 
         curr_category_remove_btn = QPushButton("X", edit_categories_view)
         curr_category_remove_btn.show()
-        curr_category_remove_btn.clicked.connect(lambda ctx: _remove_category(len(all_category_objs)))
+        curr_category_remove_btn.clicked.connect(
+            lambda ctx: _remove_category(len(all_category_objs))
+        )
 
-
-        new_category_objs = [new_category_name_txt_edit, new_category_budget_txt_edit, curr_category_remove_btn]
+        new_category_objs = [
+            new_category_name_txt_edit,
+            new_category_budget_txt_edit,
+            curr_category_remove_btn,
+        ]
         all_category_objs.append(new_category_objs)
 
         _resize()
@@ -324,47 +319,42 @@ def edit_categories_form(window):
     new_category_btn.clicked.connect(lambda ctx: add_new_category())
 
     def _resize(ctx=None):
-        save_exit_btn.setGeometry(
-                                    QRect(
-                                            QPoint(26, 26),
-                                            QSize(100, 26)
-                                        )
-                                    )
+        save_exit_btn.setGeometry(QRect(QPoint(26, 26), QSize(100, 26)))
 
         prev_obj = save_exit_btn
         for category_obj in all_category_objs:
             category_obj[0].setGeometry(
-                                        QRect(
-                                                QPoint(26, prev_obj.geometry().bottom()+26),
-                                                QSize(100, 26 )
-                                            )
-                                        )
+                QRect(QPoint(26, prev_obj.geometry().bottom() + 26), QSize(100, 26))
+            )
             category_obj[1].setGeometry(
-                                        QRect(
-                                                QPoint(category_obj[0].geometry().right()+26, prev_obj.geometry().bottom()+26),
-                                                QSize(100, 26)
-                                            )
-                                        )
+                QRect(
+                    QPoint(
+                        category_obj[0].geometry().right() + 26,
+                        prev_obj.geometry().bottom() + 26,
+                    ),
+                    QSize(100, 26),
+                )
+            )
             category_obj[2].setGeometry(
-                                        QRect(
-                                                QPoint(category_obj[1].geometry().right()+26, prev_obj.geometry().bottom()+26),
-                                                QSize(26, 26)
-                                            )
-                                        )
+                QRect(
+                    QPoint(
+                        category_obj[1].geometry().right() + 26,
+                        prev_obj.geometry().bottom() + 26,
+                    ),
+                    QSize(26, 26),
+                )
+            )
             prev_obj = category_obj[0]
 
         new_category_btn.setGeometry(
-                                        QRect(
-                                                QPoint( 26,
-                                                        prev_obj.geometry().bottom()+26),
-                                                QSize(150,26)
-                                            )
-                                    )
+            QRect(QPoint(26, prev_obj.geometry().bottom() + 26), QSize(150, 26))
+        )
 
     _resize()
     edit_categories_view.resizeEvent = _resize
 
     window.add_view(edit_categories_view)
+
 
 def add_rule_form(window):
     add_rule_view = extendedBasicWidget(window)
@@ -396,11 +386,11 @@ def add_rule_form(window):
 
     def _save_rule():
         new_rule = [
-                        text_match.toPlainText(),
-                        int(upper_limit.toPlainText())*-1,
-                        int(lower_limit.toPlainText())*-1,
-                        category_dropdown.currentText()
-                    ]
+            text_match.toPlainText(),
+            int(upper_limit.toPlainText()) * -1,
+            int(lower_limit.toPlainText()) * -1,
+            category_dropdown.currentText(),
+        ]
         add_rule(new_rule)
 
         text_match.setPlainText("")
@@ -410,77 +400,61 @@ def add_rule_form(window):
     save_btn.clicked.connect(_save_rule)
 
     def _resize(ctx=None):
-        cancel_btn.setGeometry(
-                                    QRect(
-                                            QPoint(26, 26),
-                                            QSize(100, 26)
-                                        )
-                                )
+        cancel_btn.setGeometry(QRect(QPoint(26, 26), QSize(100, 26)))
 
         text_match_label.setGeometry(
-                                QRect(
-                                        QPoint(26, cancel_btn.geometry().bottom()+26),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(QPoint(26, cancel_btn.geometry().bottom() + 26), QSize(200, 26))
+        )
         text_match.setGeometry(
-                                QRect(
-                                        QPoint(26, text_match_label.geometry().bottom()),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(QPoint(26, text_match_label.geometry().bottom()), QSize(200, 26))
+        )
 
         lower_limit_label.setGeometry(
-                                QRect(
-                                        QPoint(26, text_match.geometry().bottom()+26),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(QPoint(26, text_match.geometry().bottom() + 26), QSize(200, 26))
+        )
         lower_limit.setGeometry(
-                                QRect(
-                                        QPoint(26, lower_limit_label.geometry().bottom()),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(QPoint(26, lower_limit_label.geometry().bottom()), QSize(200, 26))
+        )
 
         upper_limit_label.setGeometry(
-                                QRect(
-                                        QPoint(lower_limit_label.geometry().right()+26, lower_limit_label.geometry().top()),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(
+                QPoint(
+                    lower_limit_label.geometry().right() + 26,
+                    lower_limit_label.geometry().top(),
+                ),
+                QSize(200, 26),
+            )
+        )
         upper_limit.setGeometry(
-                                QRect(
-                                        QPoint(lower_limit.geometry().right()+26, lower_limit.geometry().top()),
-                                        QSize(200, 26)
-                                    )
-                            )
+            QRect(
+                QPoint(
+                    lower_limit.geometry().right() + 26, lower_limit.geometry().top()
+                ),
+                QSize(200, 26),
+            )
+        )
 
         selected_category_label.setGeometry(
-                                            QRect(
-                                                    QPoint(26, lower_limit.geometry().bottom()+26),
-                                                    QSize(200, 26)
-                                                )
-                                        )
+            QRect(QPoint(26, lower_limit.geometry().bottom() + 26), QSize(200, 26))
+        )
         category_dropdown.setGeometry(
-                                        QRect(
-                                                QPoint(26, selected_category_label.geometry().bottom()),
-                                                QSize(200, 26)
-                                            )
-                                    )
+            QRect(
+                QPoint(26, selected_category_label.geometry().bottom()), QSize(200, 26)
+            )
+        )
 
         save_btn.setGeometry(
-                            QRect(
-                                            QPoint(26, category_dropdown.geometry().bottom()+26),
-                                            QSize(100, 26)
-                                        )
-                        )
+            QRect(
+                QPoint(26, category_dropdown.geometry().bottom() + 26), QSize(100, 26)
+            )
+        )
 
     _resize()
 
     add_rule_view.resizeEvent = _resize
 
     window.add_view(add_rule_view)
+
 
 def all_rules_manager(window):
     all_rules_view = extendedBasicWidget(window)
@@ -523,13 +497,13 @@ def all_rules_manager(window):
         for curr_index, rule_data in enumerate(configs["rules"][2::]):
             rule_brief = QTextEdit(rule_placement_area)
             brief_text = "\n".join(
-                                    [
-                                        f"Text Match: \"{rule_data[0]}\"",
-                                        f"Lower Limit: {rule_data[1]}",
-                                        f"Upper Limit: {rule_data[2]}",
-                                        f"Category: {rule_data[3]}"
-                                    ]
-                                )
+                [
+                    f'Text Match: "{rule_data[0]}"',
+                    f"Lower Limit: {rule_data[1]}",
+                    f"Upper Limit: {rule_data[2]}",
+                    f"Category: {rule_data[3]}",
+                ]
+            )
             rule_brief.setText(brief_text)
             rule_brief.setLineWrapMode(QTextEdit.NoWrap)
             rule_brief.setEnabled(False)
@@ -537,7 +511,9 @@ def all_rules_manager(window):
 
             remove_btn = QPushButton("X", rule_placement_area)
             remove_btn.show()
-            remove_btn.clicked.connect(lambda ctx=None, index=curr_index: _remove_rule(index) )
+            remove_btn.clicked.connect(
+                lambda ctx=None, index=curr_index: _remove_rule(index)
+            )
 
             edit_btn = QPushButton("Edit", rule_placement_area)
             edit_btn.show()
@@ -555,7 +531,7 @@ def all_rules_manager(window):
         configs = read_configs()
 
         for delete_index in staged_deletes:
-            configs["rules"].pop(delete_index+2)
+            configs["rules"].pop(delete_index + 2)
 
         update_rules(configs["rules"])
 
@@ -564,60 +540,49 @@ def all_rules_manager(window):
     save_btn.clicked.connect(_save)
 
     def _resize(ctx=None):
-        cancel_btn.setGeometry(
-                                QRect(
-                                        QPoint(26, 26),
-                                        QSize(100, 26)
-                                    )
-                                )
+        cancel_btn.setGeometry(QRect(QPoint(26, 26), QSize(100, 26)))
 
         save_btn.setGeometry(
-                            QRect(
-                                    QPoint(26, all_rules_view.geometry().bottom()-(26*2)),
-                                    QSize(100, 26)
-                                )
-                            )
+            QRect(
+                QPoint(26, all_rules_view.geometry().bottom() - (26 * 2)),
+                QSize(100, 26),
+            )
+        )
 
         new_rule_btn.setGeometry(
-                                    QRect(
-                                            QPoint(26, save_btn.geometry().top()-(26*2)),
-                                            QSize(100, 26)
-                                        )
-                                    )
+            QRect(QPoint(26, save_btn.geometry().top() - (26 * 2)), QSize(100, 26))
+        )
 
         scroll_obj.setGeometry(
-                                QRect(
-                                    QPoint(26, cancel_btn.geometry().bottom()+26),
-                                    QPoint(400, new_rule_btn.geometry().top()-26)
-                                )
-                            )
+            QRect(
+                QPoint(26, cancel_btn.geometry().bottom() + 26),
+                QPoint(400, new_rule_btn.geometry().top() - 26),
+            )
+        )
         rule_placement_area.setGeometry(
-                                        QRect(
-                                            QPoint(0, 0),
-                                            QPoint(scroll_obj.geometry().width()-26, 26*4*len(all_rule_objs))
-                                        )
-                                    )
+            QRect(
+                QPoint(0, 0),
+                QPoint(scroll_obj.geometry().width() - 26, 26 * 4 * len(all_rule_objs)),
+            )
+        )
 
         prev_geometry = QPoint(0, 0)
         for obj in all_rule_objs:
             obj[0].setGeometry(
-                                    QRect(
-                                            QPoint(26, prev_geometry.y()+26),
-                                            QSize(26, 26*3)
-                                        )
-                                    )
+                QRect(QPoint(26, prev_geometry.y() + 26), QSize(26, 26 * 3))
+            )
             obj[1].setGeometry(
-                                    QRect(
-                                            QPoint(obj[0].geometry().right(), obj[0].geometry().top()),
-                                            QSize(26, 26*3)
-                                        )
-                                    )
+                QRect(
+                    QPoint(obj[0].geometry().right(), obj[0].geometry().top()),
+                    QSize(26, 26 * 3),
+                )
+            )
             obj[2].setGeometry(
-                                    QRect(
-                                            QPoint(obj[1].geometry().right()+26, obj[1].geometry().top()),
-                                            QSize(200, 26*3)
-                                        )
-                                    )
+                QRect(
+                    QPoint(obj[1].geometry().right() + 26, obj[1].geometry().top()),
+                    QSize(200, 26 * 3),
+                )
+            )
 
             prev_geometry = obj[0].geometry().bottomLeft()
 
