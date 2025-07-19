@@ -11,19 +11,40 @@ from account_setup import (
 )
 from qt6WidgetExtensions import *
 
+"""The window for importing a new CSV file into the config file.
+
+Keyword arguments:
+window -- the window in which the widget view will be add to
+"""
+
 
 def add_account_wizard(window):
+    # dict containing header names and idexes of matching CSV columns
+    header_indexes = {header: -1 for header in headers}
+
+    # wizard view for importing CSV files
     account_importing_view = extendedBasicWidget(window)
     add_account_layout = QGridLayout(account_importing_view)
+    # default spacing for elements in GUI
     default_margin = 26
 
+    # creating all elements the user will interact with
     close_btn = QPushButton("close", account_importing_view)
     import_CSV_btn = QPushButton("Import CSV", account_importing_view)
-    file_dialog = QFileDialog(account_importing_view)
     headers_selection_table = QTableWidget(1, 0, account_importing_view)
     account_name_editor = QTextEdit(account_importing_view)
     account_name_label = QLabel("Account name: ", account_importing_view)
+    next_header_btn = QPushButton("Next", account_importing_view)
+    prev_header_btn = QPushButton("Previous", account_importing_view)
+    directions_box = QLabel("Import a CSV file", account_importing_view)
+    finish_btn = QPushButton("Finish", account_importing_view)
 
+    # object for handling the file selection
+    file_dialog = QFileDialog(account_importing_view)
+
+    # creating a radio button set for key headers needed from the CSV
+    # the user selects the radio button header then the appropriate CSV column
+    # this imports the CSV column index into the config file
     headers = defaults(headers=True)
     headers_selectors = QButtonGroup(account_importing_view)
     for index, header in enumerate(headers):
@@ -32,115 +53,155 @@ def add_account_wizard(window):
         headers_selectors.addButton(temp_btn)
         headers_selectors.setId(temp_btn, index)
 
-    next_header_btn = QPushButton("Next", account_importing_view)
-    prev_header_btn = QPushButton("Previous", account_importing_view)
-    directions_box = QLabel("Import a CSV file", account_importing_view)
-    finish_btn = QPushButton("Finish", account_importing_view)
-
-    header_indexes = {header: -1 for header in headers}
-
     directions_box.setAlignment(Qt.AlignCenter)
     prev_header_btn.setDisabled(True)
     next_header_btn.setDisabled(True)
 
+    """sets up wizard after user selects the import button"""
+
     def _show_headers():
+        # file explorer opens and waits for user to select a file
         file_dialog.exec()
-
+        # gets CSV header names from selected file
         headers = get_headers(file_dialog.selectedFiles()[0])
-
+        # makes the interactable table as big as needed to show all headers
         headers_selection_table.setColumnCount(len(headers))
-
+        # shows user just the header names in the interactable table
         for index in range(len(headers)):
             headers_selection_table.setItem(0, index, QTableWidgetItem(headers[index]))
-
+        # enables the next button
         next_header_btn.setDisabled(False)
 
+        # enables radio button group
         for header_radio_btn in headers_selectors.buttons():
             header_radio_btn.setDisabled(False)
+        # sets first radio button as selected for next and prev buttons to work
         headers_selectors.buttons()[0].click()
 
+    # setting function to run when import button is clicked
     import_CSV_btn.clicked.connect(_show_headers)
+
+    """to make navigating the wizard easier the prev and next buttons are disabled at certain times
+        prev is disabled when on the first header to be selected
+        next is disabled when on the last header to be selected
+    """
 
     def _btn_disabler():
         selected_header_btn = headers_selectors.checkedButton()
         header_selected_id = headers_selectors.id(selected_header_btn)
 
+        # disables both
         prev_header_btn.setDisabled(False)
         next_header_btn.setDisabled(False)
 
+        # checks for last header
         if header_selected_id >= len(headers_selectors.buttons()) - 1:
             next_header_btn.setDisabled(True)
-
+        # checks for first header
         if header_selected_id == 0:
             prev_header_btn.setDisabled(True)
 
     def _select_header(prev=False, next=False):
+        # gets cells selected, should be 1
         selected_cells = headers_selection_table.selectedItems()
+        # checks if no cells are selected
         if len(selected_cells) == 0:
             print("You have not selected any cell. Try again")
             return
+        # checks if more than one is selected
         elif len(selected_cells) > 1:
             print("You have selected too many cells. Just select one for this header")
             return
 
+        # set value of selected header to index of user selected CSV column
         selected_header_btn = headers_selectors.checkedButton()
         header_indexes[selected_header_btn.text()] = selected_cells[0].column()
 
+        # get current header
         header_selected_id = headers_selectors.id(selected_header_btn)
-
+        # select next header
         if next:
             headers_selectors.button(header_selected_id + 1).click()
 
+        # select previous header
         if prev:
             headers_selectors.button(header_selected_id - 1).click()
 
+        # disable appropriate buttons for next header
         _btn_disabler()
 
+    # connect buttons and cell selecting to functions defined above
     next_header_btn.clicked.connect(lambda ctx: _select_header(next=True))
     prev_header_btn.clicked.connect(lambda ctx: _select_header(prev=True))
     headers_selection_table.cellClicked.connect(lambda ctx: _select_header())
 
+    """The user can select headers individually instead of using prev/ next buttons.
+        This handles when a single radio button is clicked
+    """
+
     def _radio_btn_click_handler(btn):
+        # clears user selection from table
         headers_selection_table.clearSelection()
+        # gets previous choice has defined
         user_selected_column = header_indexes[btn.text()]
+        # select cell of table if a previous choice was made
         if not user_selected_column == -1:
             item = headers_selection_table.item(0, user_selected_column)
             headers_selection_table.setCurrentItem(item)
 
+        # disable appropriate buttons for next header
         _btn_disabler()
 
+    # connects radio button clicking event to function
     headers_selectors.buttonClicked.connect(_radio_btn_click_handler)
+
+    """Destorys the CSV input wizard"""
 
     def _exit_wizard():
         window.layout().removeWidget(account_importing_view)
 
+    # connects exiting the wizard function to appropriate button
     close_btn.clicked.connect(_exit_wizard)
 
+    """Handles saving all the information the user specified about the account to the config file"""
+
     def _save_new_account():
+        # iterates through all headers and checks if user has chosen a column for each required
         for header, index in header_indexes.items():
             if index < 0:
                 print("You have not selected columns for all nessessary headers")
                 return
+        # checks for an account with the same name that could cause a conflict in config file
         if get_account_details(account_name_editor.toPlainText()):
             print(
                 "An account with that name already exists, give this account a new name"
             )
             return
+        # checks if user forgot to specify a name
         if account_name_editor.toPlainText() == "":
             print("Give your acconut a name")
             return
-
+        # successfully saves the new CSV file
         add_account(
             account_name_editor.toPlainText(),
             file_dialog.selectedFiles()[0],
             header_indexes,
         )
+
+        # clears all user choices
         account_name_editor.clear()
         headers_selection_table.clear()
+
+        # refreshes wizard with no options chosen to the user can add a fresh new CSV file
         window.refresh()
         return
 
+    # connects submit button amd saving function
     finish_btn.clicked.connect(_save_new_account)
+
+    """This function defines where each element should go in the wizard screen.
+        Also used to redraw elements as the window is manipulated
+    """
 
     def _resize(ctx=None):
         close_btn.setGeometry(

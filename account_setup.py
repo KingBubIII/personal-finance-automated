@@ -7,7 +7,7 @@ from configs_ops import update_configs
 
 def defaults(headers=False, rules=False) -> list[str]:
     if headers:
-        return ["date", "amount", "description"]
+        return ["date", "amount", "description", "type"]
     elif rules:
         return ["Misc"]
 
