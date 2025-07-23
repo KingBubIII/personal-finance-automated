@@ -19,8 +19,7 @@ window -- the window in which the widget view will be add to
 
 
 def add_account_wizard(window):
-    # dict containing header names and idexes of matching CSV columns
-    header_indexes = {header: -1 for header in headers}
+
 
     # wizard view for importing CSV files
     account_importing_view = extendedBasicWidget(window)
@@ -46,6 +45,8 @@ def add_account_wizard(window):
     # the user selects the radio button header then the appropriate CSV column
     # this imports the CSV column index into the config file
     headers = defaults(headers=True)
+    # dict containing header names and idexes of matching CSV columns
+    header_indexes = {header: -1 for header in headers}
     headers_selectors = QButtonGroup(account_importing_view)
     for index, header in enumerate(headers):
         temp_btn = QRadioButton(header, account_importing_view)

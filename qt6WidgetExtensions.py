@@ -76,6 +76,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         comboBox = QComboBox(parent)
         comboBox.addItems(self.dropdown_options)
+        comboBox.addItem("*Skip*")
         return comboBox
 
 

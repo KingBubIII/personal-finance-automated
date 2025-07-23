@@ -329,6 +329,10 @@ class MainWindow_(extendedBasicWidget):
 # reads all CSV files individually then combines them
 class Transactions:
     def __init__(self):
+        # acceptable transaction types
+        self._expense_synonyms = ["withdrawal", "sale"]
+        self._income_synonyms = ["deposit"]
+
         self.curr_configs = None
         self.headers = None
         self.accounts = None
@@ -336,6 +340,7 @@ class Transactions:
         self.tables = None
         self.expenses = {"planned": 0, "actual": 0}
         self.incomes = {"planned": 0, "actual": 0}
+
 
         self.refresh()
 
@@ -386,23 +391,25 @@ class Transactions:
 
         rule_match = False
         rule_index = 1
+        amt = float(transaction[1])
+
+        # checks if transaction is a positive amount
+        if amt > 0:
+            if transaction[3].lower() in self._income_synonyms:
+                self.incomes["actual"] += amt
+                return "Income"
+            else:
+                return "*Skip*"
 
         # repeat until rule match found or out of categories
         while not rule_match and rule_index <= len(all_rules) - 1:
-            # curr_string = all_string_matches[curr_string_index]
-
             if all_rules[rule_index][0] in transaction[2]:
-                amt = float(transaction[1])
                 if amt > all_rules[rule_index][1] and amt <= all_rules[rule_index][2]:
-                    # checks if transaction is under 'income' category
-                    if rule_index == 1:
-                        # adds income amount to keep track easier
-                        self.incomes["actual"] += amt
                     return all_rules[rule_index][3]
             rule_index += 1
 
         # defaults to 'misc' category
-        return all_rules[0][3]
+        return "Misc"
 
     def get_all_account_tables(self):
         # read in all accounts added to configs file
