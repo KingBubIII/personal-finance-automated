@@ -20,7 +20,6 @@ window -- the window in which the widget view will be add to
 
 def add_account_wizard(window):
 
-
     # wizard view for importing CSV files
     account_importing_view = extendedBasicWidget(window)
     add_account_layout = QGridLayout(account_importing_view)

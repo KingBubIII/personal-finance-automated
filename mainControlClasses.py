@@ -7,7 +7,7 @@ from PySide6.QtCharts import (
     QChartView,
     QValueAxis,
 )
-from PySide6.QtGui import QPainter, QColor
+from PySide6.QtGui import QPainter, QColor, QFont
 from configs_ops import read_configs, get_account_details
 from csv_ops import get_data_from_account, get_headers
 from account_setup import defaults, add_override, add_account
@@ -104,8 +104,6 @@ class MainWindow_(extendedBasicWidget):
 
                     progress_bar_widgets.append(curr_bar)
 
-        _create_budget_progress_bars_area()
-
         starting_balance_label = QLabel("Starting Balance: ", stats_area)
         starting_balance_val = QDoubleSpinBox(stats_area)
         starting_balance_val.setDecimals(2)
@@ -124,6 +122,10 @@ class MainWindow_(extendedBasicWidget):
         ending_balance_val.setPrefix("$")
         ending_balance_val.setEnabled(False)
 
+        savings_percent_label = QLabel("", stats_area)
+        font = QFont("Arial", 20, QFont.Weight.Bold)
+        savings_percent_label.setFont(font)
+
         self.chart_class = CustomChartClass()
         # Chart view
         expenses_chart = QChartView(self.chart_class.chart_widget, stats_area)
@@ -135,10 +137,27 @@ class MainWindow_(extendedBasicWidget):
             self.transactions_class.expenses, self.transactions_class.incomes
         )
 
+        def _refresh_stats():
+            self.chart_class.refresh_chart(
+                self.transactions_class.expenses, self.transactions_class.incomes
+            )
+
+            actual_savings = (
+                self.transactions_class.incomes["actual"]
+                - self.transactions_class.expenses["actual"]
+            )
+
+            ending_balance_val.setValue(starting_balance_val.value() + actual_savings)
+
+            savings_percent = (
+                actual_savings / self.transactions_class.incomes["actual"]
+            ) * 100
+            savings_percent_label.setText("Percentage Saved: " + str(round(savings_percent, 2)) + "%")
+
         @update_configs
         def _update_starting_balance(configs):
-            print(starting_balance_val.value())
             configs["starting_balance"] = starting_balance_val.value()
+            _refresh_stats()
             return configs
 
         starting_balance_val.valueChanged.connect(
@@ -150,7 +169,7 @@ class MainWindow_(extendedBasicWidget):
                 default_margin,
                 default_margin,
                 home.geometry().width() // 2,
-                home.geometry().height() // 3,
+                default_margin * 5,
             )
 
             stats_area.setGeometry(
@@ -281,8 +300,8 @@ class MainWindow_(extendedBasicWidget):
             ending_balance_label.setGeometry(
                 QRect(
                     QPoint(
+                        starting_balance_val.geometry().right() + default_margin,
                         default_margin,
-                        starting_balance_label.geometry().bottom() + default_margin,
                     ),
                     QSize(ending_balance_label.sizeHint().width(), default_margin),
                 )
@@ -298,11 +317,21 @@ class MainWindow_(extendedBasicWidget):
                 )
             )
 
+            savings_percent_label.setGeometry(
+                QRect(
+                    QPoint(
+                        ending_balance_val.geometry().right() + default_margin,
+                        default_margin,
+                    ),
+                    savings_percent_label.sizeHint(),
+                )
+            )
+
             expenses_chart.setGeometry(
                 QRect(
                     QPoint(
-                        starting_balance_val.geometry().right() + default_margin,
                         default_margin,
+                        ending_balance_label.geometry().bottom() + default_margin,
                     ),
                     QPoint(
                         stats_area.geometry().width() - default_margin,
@@ -315,12 +344,11 @@ class MainWindow_(extendedBasicWidget):
 
         def _refresh():
             _create_budget_progress_bars_area()
-            self.chart_class.refresh_chart(
-                self.transactions_class.expenses, self.transactions_class.incomes
-            )
+            _refresh_stats()
             _resize(None)
 
         home.refresh = _refresh
+        home.refresh()
 
         self.add_view(home)
 
@@ -340,7 +368,6 @@ class Transactions:
         self.tables = None
         self.expenses = {"planned": 0, "actual": 0}
         self.incomes = {"planned": 0, "actual": 0}
-
 
         self.refresh()
 
