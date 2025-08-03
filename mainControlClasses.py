@@ -149,10 +149,15 @@ class MainWindow_(extendedBasicWidget):
 
             ending_balance_val.setValue(starting_balance_val.value() + actual_savings)
 
-            savings_percent = (
-                actual_savings / self.transactions_class.incomes["actual"]
-            ) * 100
-            savings_percent_label.setText("Percentage Saved: " + str(round(savings_percent, 2)) + "%")
+            try:
+                savings_percent = (
+                    actual_savings / self.transactions_class.incomes["actual"]
+                ) * 100
+            except ZeroDivisionError as e:
+                savings_percent = 0
+            savings_percent_label.setText(
+                "Percentage Saved: " + str(round(savings_percent, 2)) + "%"
+            )
 
         @update_configs
         def _update_starting_balance(configs):
@@ -404,9 +409,7 @@ class Transactions:
             return None
 
     def get_expenses(self):
-        expense_categories = self.categories.copy()
-        del expense_categories["Income"]
-        for category in expense_categories:
+        for category in self.categories:
             self.expenses["actual"] += self.get_category_total(category)
             self.expenses["planned"] += self.categories[category]
 

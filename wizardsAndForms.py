@@ -302,7 +302,7 @@ def edit_categories_form(window):
     save_exit_btn = QPushButton("Save and Exit", edit_categories_view)
 
     def _save_and_exit():
-        categories_dict = {"Income": 10000}
+        categories_dict = {}
         for objs in all_category_objs:
             categories_dict.update({objs[0].toPlainText(): int(objs[1].toPlainText())})
 
@@ -319,40 +319,42 @@ def edit_categories_form(window):
     all_category_objs = []
 
     def _remove_category(index):
-        # gets all objects associated with selected category
-        category_objs = all_category_objs[index - 1]
         # sets all objects to hidden
-        for obj in category_objs:
+        for obj in all_category_objs[index]:
             obj.setVisible(False)
         # remove all referances to object, effectively deleting them
-        all_category_objs.pop(index - 1)
+        all_category_objs.pop(index)
         # call move form objects to right place after deleting some
         _resize()
 
     for curr_index, (category_name, category_budget) in enumerate(
         configs["categories"].items()
     ):
-        if not category_name == "Income":
-            curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
-            if category_name == "Misc":
-                curr_category_name_obj.setDisabled(True)
+        curr_category_name_obj = QTextEdit(category_name, edit_categories_view)
 
-            curr_category_budget_obj = QTextEdit(
-                str(category_budget), edit_categories_view
-            )
+        # creates text field that the user can change to set a budget for the category
+        curr_category_budget_obj = QTextEdit(str(category_budget), edit_categories_view)
 
-            curr_category_remove_btn = QPushButton("X", edit_categories_view)
-            curr_category_remove_btn.clicked.connect(
-                lambda ctx=None, index=curr_index: _remove_category(index)
-            )
+        # creates button to delete category and all related objects including itself
+        curr_category_remove_btn = QPushButton("X", edit_categories_view)
+        curr_category_remove_btn.setObjectName("remove " + category_name)
+        if category_name == "Misc":
+            curr_category_name_obj.setDisabled(True)
+            curr_category_remove_btn.setDisabled(True)
 
-            all_curr_category_objs = [
-                curr_category_name_obj,
-                curr_category_budget_obj,
-                curr_category_remove_btn,
-            ]
+        # makes list of objects so handle category changes easier
+        all_curr_category_objs = [
+            curr_category_name_obj,
+            curr_category_budget_obj,
+            curr_category_remove_btn,
+        ]
 
-            all_category_objs.append(all_curr_category_objs)
+        # lsit[list[widgets]]
+        all_category_objs.append(all_curr_category_objs)
+        # when pressing the button delete all objects for that category
+        curr_category_remove_btn.clicked.connect(
+            lambda checked=False, index=curr_index: _remove_category(index)
+        )
 
     new_category_btn = QPushButton("Add New Category", edit_categories_view)
 
